@@ -33,52 +33,54 @@ import AdminDashboard from './admin/AdminDashboard';
 import UserManagement from './admin/UserManagement';
 import SystemStats from './admin/SystemStats';
 
-// Protected Route Component
+import DataEntryDashboard from './pages/dataentry/DataEntryDashboard';
+import PatientPrescription from './pages/dataentry/PatientPrescriptions';
+import PatientDiagnosis from './pages/dataentry/PatientDiagnosis';
+
+// Role-based Redirect Lookup
+const roleRedirects = {
+  patient: "/patient/dashboard",
+  doctor: "/doctor/dashboard",
+  pharmacy: "/pharmacy/dashboard",
+  laboratory: "/laboratory/dashboard",
+  admin: "/admin/dashboard",
+  dataentry: "/dataentry/dashboard",
+};
+
+// 🔒 Protected Route Component
 const ProtectedRoute = ({ children, allowedRoles }) => {
   const { user, loading } = useAuth();
-  
+
   if (loading) {
     return <div className="flex items-center justify-center h-screen">Loading...</div>;
   }
-  
+
   if (!user) {
     return <Navigate to="/login" />;
   }
-  
+
   if (allowedRoles && !allowedRoles.includes(user.role)) {
-    // Redirect to role-specific dashboard if authenticated but wrong role
-    if (user.role === 'patient') return <Navigate to="/patient/dashboard" />;
-    if (user.role === 'doctor') return <Navigate to="/doctor/dashboard" />;
-    if (user.role === 'pharmacy') return <Navigate to="/pharmacy/dashboard" />;
-    if (user.role === 'laboratory') return <Navigate to="/laboratory/dashboard" />;
-    if (user.role === 'admin') return <Navigate to="/admin/dashboard" />;
-    return <Navigate to="/login" />;
+    return <Navigate to={roleRedirects[user.role] || "/login"} />;
   }
-  
+
   return children;
 };
 
-// Dashboard Redirect Component
+// 🔄 Dashboard Redirect Component
 const DashboardRedirect = () => {
   const { user } = useAuth();
-  
+
   if (!user) {
     return <Navigate to="/login" />;
   }
-  
-  if (user.role === 'patient') return <Navigate to="/patient/dashboard" />;
-  if (user.role === 'doctor') return <Navigate to="/doctor/dashboard" />;
-  if (user.role === 'pharmacy') return <Navigate to="/pharmacy/dashboard" />;
-  if (user.role === 'laboratory') return <Navigate to="/laboratory/dashboard" />;
-  if (user.role === 'admin') return <Navigate to="/admin/dashboard" />;
-  
-  return <Navigate to="/" />;
+
+  return <Navigate to={roleRedirects[user.role] || "/"} />;
 };
 
-// Layout Component
+// 📌 Layout Component
 const DashboardLayout = ({ children }) => {
   const { user } = useAuth();
-  
+
   return (
     <div className="flex flex-col min-h-screen">
       <Navbar />
@@ -93,20 +95,21 @@ const DashboardLayout = ({ children }) => {
   );
 };
 
+// 🚀 Main App Component
 function App() {
   return (
     <AuthProvider>
       <Router>
         <Routes>
-          {/* Public Routes */}
+          {/* 🏠 Public Routes */}
           <Route path="/" element={<Home />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
-          
-          {/* Dashboard Redirect */}
+
+          {/* 🔄 Dashboard Redirect */}
           <Route path="/dashboard" element={<DashboardRedirect />} />
-          
-          {/* Patient Routes */}
+
+          {/* 👨‍⚕️ Patient Routes */}
           <Route path="/patient/dashboard" element={
             <ProtectedRoute allowedRoles={['patient', 'admin']}>
               <DashboardLayout>
@@ -128,8 +131,8 @@ function App() {
               </DashboardLayout>
             </ProtectedRoute>
           } />
-          
-          {/* Doctor Routes */}
+
+          {/* 🩺 Doctor Routes */}
           <Route path="/doctor/dashboard" element={
             <ProtectedRoute allowedRoles={['doctor', 'admin']}>
               <DashboardLayout>
@@ -158,8 +161,8 @@ function App() {
               </DashboardLayout>
             </ProtectedRoute>
           } />
-          
-          {/* Pharmacy Routes */}
+
+          {/* 💊 Pharmacy Routes */}
           <Route path="/pharmacy/dashboard" element={
             <ProtectedRoute allowedRoles={['pharmacy', 'admin']}>
               <DashboardLayout>
@@ -174,8 +177,8 @@ function App() {
               </DashboardLayout>
             </ProtectedRoute>
           } />
-          
-          {/* Laboratory Routes */}
+
+          {/* 🧪 Laboratory Routes */}
           <Route path="/laboratory/dashboard" element={
             <ProtectedRoute allowedRoles={['laboratory', 'admin']}>
               <DashboardLayout>
@@ -190,8 +193,8 @@ function App() {
               </DashboardLayout>
             </ProtectedRoute>
           } />
-          
-          {/* Admin Routes */}
+
+          {/* 🔧 Admin Routes */}
           <Route path="/admin/dashboard" element={
             <ProtectedRoute allowedRoles={['admin']}>
               <DashboardLayout>
@@ -213,8 +216,25 @@ function App() {
               </DashboardLayout>
             </ProtectedRoute>
           } />
-          
-          {/* 404 Route */}
+
+<Route path="/dataentry/dashboard" element={<DataEntryDashboard />} />
+<Route path="/dataentry/patientprescriptions" element={<PatientPrescription />} />
+<Route path="/dataentry/patientdiagnosis" element={<PatientDiagnosis />} />
+
+
+
+
+          {/* 📊 Data Entry Routes
+          <Route path="/dataentry/dashboard" element={
+            <ProtectedRoute allowedRoles={['dataentry', 'admin']}>
+              <DashboardLayout>
+                <DataEntryDashboard />
+              </DashboardLayout>
+            </ProtectedRoute>
+          } />
+            */}
+
+          {/* 🚨 404 Fallback Route */}
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </Router>

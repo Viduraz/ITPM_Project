@@ -5,6 +5,16 @@ import Sidebar from './Sidebar';
 import Footer from './Footer';
 import { useAuth } from '../../context/AuthContext';
 
+// Define dashboard routes outside the component
+const dashboardRoutes = {
+  admin: '/admin/dashboard',
+  doctor: '/doctor/dashboard',
+  patient: '/patient/dashboard',
+  pharmacy: '/pharmacy/dashboard',
+  laboratory: '/laboratory/dashboard',
+  dataentry: '/dataentry/dashboard', 
+};
+
 const DashboardLayout = ({ children, requiredRole }) => {
   const { user, loading } = useAuth();
   
@@ -15,24 +25,17 @@ const DashboardLayout = ({ children, requiredRole }) => {
       </div>
     );
   }
-  
+
   // If no user is logged in, redirect to login
   if (!user) {
     return <Navigate to="/login" />;
   }
-  
+
   // If requiredRole is specified and user doesn't have that role, redirect to their dashboard
   if (requiredRole && user.role !== requiredRole) {
-    const dashboardRoutes = {
-      admin: '/admin/dashboard',
-      doctor: '/doctor/dashboard',
-      patient: '/patient/dashboard',
-      pharmacy: '/pharmacy/dashboard',
-      laboratory: '/laboratory/dashboard'
-    };
     return <Navigate to={dashboardRoutes[user.role] || '/dashboard'} />;
   }
-  
+
   return (
     <div className="flex flex-col min-h-screen">
       <Navbar />

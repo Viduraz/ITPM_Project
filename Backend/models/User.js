@@ -1,5 +1,5 @@
 import mongoose from 'mongoose';
-import crypto from 'crypto';
+import bcrypt from 'bcryptjs';
 
 const userSchema = new mongoose.Schema({
   firstName: {
@@ -31,7 +31,7 @@ const userSchema = new mongoose.Schema({
   },
   role: {
     type: String,
-    enum: ['admin', 'doctor', 'patient', 'pharmacy', 'laboratory'],
+    enum: ['admin', 'doctor', 'patient', 'pharmacy', 'laboratory', 'dataentry'], // Added 'dataentry' role
     default: 'patient'
   },
   profileImage: {
@@ -48,14 +48,21 @@ const userSchema = new mongoose.Schema({
   }
 }, { timestamps: true });
 
-// Pre-save hook to hash password
-userSchema.pre('save', function(next) {
+// Pre-save hook to hash password using bcrypt
+userSchema.pre('save', async function(next) {
   if (!this.isModified('password')) return next();
+
+  // Salt rounds (for bcrypt)
+  const salt = await bcrypt.genSalt(10);
+  this.password = await bcrypt.hash(this.password, salt);
   
-  // Simple password hashing (in a real app, use bcrypt)
-  this.password = crypto.createHash('sha256').update(this.password).digest('hex');
   next();
 });
+
+// Method to compare hashed password with input password
+userSchema.methods.matchPassword = async function(enteredPassword) {
+  return await bcrypt.compare(enteredPassword, this.password);
+};
 
 const User = mongoose.model('User', userSchema);
 

@@ -13,7 +13,7 @@ const Register = () => {
     confirmPassword: '',
     contactNumber: '',
     IdNumber: '',
-    role: 'patient', // Default role
+    role: 'patient', // Default role is 'patient'
   });
   const [isLoading, setIsLoading] = useState(false);
   const { register, error } = useAuth();
@@ -58,11 +58,11 @@ const Register = () => {
 
     setIsLoading(true);
     try {
-      // Remove confirmPassword before sending
+      // Remove confirmPassword before sending to the backend
       const { confirmPassword, ...userData } = formData;
       const user = await register(userData);
       
-      // Redirect based on user role
+      // Redirect based on user role after successful registration
       if (user.role === 'admin') {
         navigate('/admin/dashboard');
       } else if (user.role === 'doctor') {
@@ -73,6 +73,8 @@ const Register = () => {
         navigate('/pharmacy/dashboard');
       } else if (user.role === 'laboratory') {
         navigate('/laboratory/dashboard');
+      } else if (user.role === 'dataentry') {
+        navigate('/dataentry/dashboard');
       } else {
         navigate('/dashboard');
       }
@@ -216,6 +218,7 @@ const Register = () => {
                 >
                   <option value="patient">Patient</option>
                   <option value="doctor">Doctor</option>
+                  <option value="dataentry">Data Entry</option> {/* New Role Option */}
                 </select>
               </div>
 

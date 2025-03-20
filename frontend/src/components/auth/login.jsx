@@ -1,4 +1,3 @@
-// src/components/auth/Login.jsx
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../pages/context/AuthContext';
@@ -27,19 +26,19 @@ const Login = () => {
       const user = await login(formData.email, formData.password);
       
       // Redirect based on user role
-      if (user.role === 'admin') {
-        navigate('/admin/dashboard');
-      } else if (user.role === 'doctor') {
-        navigate('/doctor/dashboard');
-      } else if (user.role === 'patient') {
-        navigate('/patient/dashboard');
-      } else if (user.role === 'pharmacy') {
-        navigate('/pharmacy/dashboard');
-      } else if (user.role === 'laboratory') {
-        navigate('/laboratory/dashboard');
-      } else {
-        navigate('/dashboard');
-      }
+      const roleRoutes = {
+        admin: '/admin/dashboard',
+        doctor: '/doctor/dashboard',
+        patient: '/patient/dashboard',
+        pharmacy: '/pharmacy/dashboard',
+        laboratory: '/laboratory/dashboard',
+        dataentry: '/dataentry/dashboard',
+      };
+
+      // Navigate to appropriate dashboard based on the role
+      const redirectPath = roleRoutes[user.role] || '/dashboard';
+      navigate(redirectPath);
+      
     } catch (error) {
       console.error('Login error:', error);
     } finally {

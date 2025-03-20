@@ -1,4 +1,3 @@
-// src/components/layout/Sidebar.jsx
 import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 
@@ -32,6 +31,11 @@ const Sidebar = ({ userRole }) => {
       { name: 'User Management', path: '/admin/users', icon: 'users' },
       { name: 'Statistics', path: '/admin/stats', icon: 'chart' },
     ],
+    dataentry: [ // Added Data Entry role
+      { name: 'Dashboard', path: '/dataentry/dashboard', icon: 'home' },  // New path for data entry dashboard
+      { name: 'Patient Diagnosis', path: '/dataentry/patientdiagnosis', icon: 'document' },
+      { name: 'Prescriptions', path: '/dataentry/patientprescriptions', icon: 'clipboard' },
+    ]
   };
 
   // Get navigation items based on user role
