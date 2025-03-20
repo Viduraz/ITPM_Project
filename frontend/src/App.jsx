@@ -134,12 +134,27 @@ function App() {
               </DashboardLayout>
             </ProtectedRoute>
           } />
+          <Route path="/doctor-search/:specialty?" element={
+            <ProtectedRoute allowedRoles={['patient', 'admin']}>
+              <DashboardLayout>
+                <DoctorSearch />
+              </DashboardLayout>
+            </ProtectedRoute>
+          } />
           
           {/* Doctor Routes */}
           <Route path="/doctor/dashboard" element={
             <ProtectedRoute allowedRoles={['doctor', 'admin']}>
               <DashboardLayout>
                 <DoctorDashboard />
+              </DashboardLayout>
+            </ProtectedRoute>
+          } />
+
+          <Route path="/doctor/profile" element={
+            <ProtectedRoute allowedRoles={['doctor', 'admin']}>
+              <DashboardLayout>
+                <DoctorProfile />
               </DashboardLayout>
             </ProtectedRoute>
           } />
@@ -161,6 +176,13 @@ function App() {
             <ProtectedRoute allowedRoles={['doctor', 'admin']}>
               <DashboardLayout>
                 <PrescriptionForm />
+              </DashboardLayout>
+            </ProtectedRoute>
+          } />
+          <Route path="/doctor-availability" element={
+            <ProtectedRoute allowedRoles={['patient', 'admin']}>
+              <DashboardLayout>
+                <DoctorAvailability />
               </DashboardLayout>
             </ProtectedRoute>
           } />
