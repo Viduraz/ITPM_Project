@@ -1,4 +1,3 @@
-// src/components/layout/Navbar.jsx
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../pages/context/AuthContext';
@@ -18,94 +17,71 @@ const Navbar = () => {
   };
 
   return (
-    <nav className="bg-indigo-600 shadow-lg">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between h-16">
-          <div className="flex">
-            <div className="flex-shrink-0 flex items-center">
-              <Link to="/" className="text-white text-xl font-bold">
-                MedHistory System
-              </Link>
-            </div>
-          </div>
+    <div className="flex">
+      {/* Sidebar Navbar */}
+      <nav className="w-72 h-screen bg-[#367588] text-white shadow-lg fixed top-0 left-0 p-4">
+  <div className="flex flex-col h-full">
+    <div className="flex-shrink-0 flex items-center mb-6">
+      <Link to="/" className="text-[#ffffff] text-xl font-bold">
+        MedHistory System
+      </Link>
+    </div>
+    <div className="flex-grow">
+      {user ? (
+        <>
+          <span className="text-white text-sm block mb-4">
+            Welcome, {user.firstName} {user.lastName}
+          </span>
           
-          {user && (
-            <div className="hidden md:flex items-center">
-              <span className="text-white text-sm mr-4">
-                Welcome, {user.firstName} {user.lastName}
-              </span>
-              <button
-                onClick={handleLogout}
-                className="bg-indigo-700 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-indigo-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-indigo-600 focus:ring-white"
-              >
-                Logout
-              </button>
-            </div>
-          )}
+          {/* Navigation Links for Logged-in Users */}
+          <Link to="/patients" className="block text-white hover:bg-gray-700 px-3 py-2 rounded-md text-sm font-medium mb-2">
+            Patient Section
+          </Link>
+          
+          <Link to="/reports" className="block text-white hover:bg-gray-700 px-3 py-2 rounded-md text-sm font-medium mb-2">
+            Report Section
+          </Link>
+          
+          <Link to="/diagnosis" className="block text-white hover:bg-gray-700 px-3 py-2 rounded-md text-sm font-medium mb-2">
+            Diagnosis Section
+          </Link>
+          
+          <Link to="/prescriptions" className="block text-white hover:bg-gray-700 px-3 py-2 rounded-md text-sm font-medium mb-2">
+            Prescription Section
+          </Link>
+          
+          <Link to="/settings" className="block text-white hover:bg-gray-700 px-3 py-2 rounded-md text-sm font-medium mb-2">
+            Settings
+          </Link>
 
-          {!user && (
-            <div className="hidden md:flex items-center space-x-4">
-              <Link to="/login" className="text-white hover:bg-indigo-700 px-3 py-2 rounded-md text-sm font-medium">
-                Login
-              </Link>
-              <Link to="/register" className="bg-white text-indigo-600 px-4 py-2 rounded-md text-sm font-medium hover:bg-gray-100">
-                Register
-              </Link>
-            </div>
-          )}
-
-          <div className="flex md:hidden">
-            <button
-              onClick={toggleMenu}
-              className="bg-indigo-700 p-2 rounded-md text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-indigo-600 focus:ring-white"
-            >
-              <svg
-                className="h-6 w-6"
-                xmlns="http://www.w3.org/2000/svg" 
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                {isMenuOpen ? (
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                ) : (
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-                )}
-              </svg>
-            </button>
-          </div>
-        </div>
-      </div>
-
-      {isMenuOpen && (
-        <div className="md:hidden">
-          <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
-            {user ? (
-              <>
-                <span className="text-white block px-3 py-2 text-base font-medium">
-                  Welcome, {user.firstName} {user.lastName}
-                </span>
-                <button
-                  onClick={handleLogout}
-                  className="text-white block px-3 py-2 text-base font-medium hover:bg-indigo-700 w-full text-left"
-                >
-                  Logout
-                </button>
-              </>
-            ) : (
-              <>
-                <Link to="/login" className="text-white block px-3 py-2 text-base font-medium hover:bg-indigo-700">
-                  Login
-                </Link>
-                <Link to="/register" className="text-white block px-3 py-2 text-base font-medium hover:bg-indigo-700">
-                  Register
-                </Link>
-              </>
-            )}
-          </div>
-        </div>
+          <button
+            onClick={handleLogout}
+            className="bg-indigo-700 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-indigo-800 w-full mt-4"
+          >
+            Logout
+          </button>
+        </>
+      ) : (
+        <>
+          {/* Navigation Links for Guest Users (Login and Register) */}
+          <Link to="/login" className="block text-indigo-600 hover:bg-gray-100 px-3 py-2 rounded-md text-sm font-medium mb-2">
+            Login
+          </Link>
+          <Link to="/register" className="block bg-white text-indigo-600 px-4 py-2 rounded-md text-sm font-medium hover:bg-gray-100 mb-2">
+            Register
+          </Link>
+        </>
       )}
-    </nav>
+    </div>
+  </div>
+</nav>
+
+      
+      {/* Page Content */}
+      <div className="flex-1 ml-64 p-4">
+        {/* Content Goes Here */}
+      </div>
+    </div>
   );
 };
 
