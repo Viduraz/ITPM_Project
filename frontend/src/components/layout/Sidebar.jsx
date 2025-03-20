@@ -12,7 +12,7 @@ const Sidebar = ({ userRole }) => {
     patient: [
       { name: 'Dashboard', path: '/patient/dashboard', icon: 'home' },
       { name: 'Medical History', path: '/patient/medical-history', icon: 'document' },
-      { name: 'Find Doctors', path: '/patient/find-doctors', icon: 'search' },
+      { name: 'Find Doctors', path: '/doctor-search', icon: 'search' }, // Update this line
     ],
     doctor: [
       { name: 'Dashboard', path: '/doctor/dashboard', icon: 'home' },
