@@ -5,13 +5,52 @@ import { FaStar } from 'react-icons/fa';
 
 const DoctorAvailability = () => {
   const location = useLocation();
-  const doctor = location.state?.doctor;
+  // Provide a fallback dummy doctor if none is passed in location.state
+  const doctor = location.state?.doctor || {
+    image: 'https://via.placeholder.com/150',
+    name: 'Dr. Example',
+    title: 'Allergy Specialist',
+    experience: '10 years',
+    specialization: 'Allergy and Immunology',
+    sessions: [
+      { date: 'March 29, 2025', time: '01:00 PM', location: 'ASIRI Hospital - Colombo', appointments: 25, status: 'FULL' },
+      { date: 'March 31, 2025', time: '06:30 AM', location: 'ASIRI Hospital - Colombo', appointments: 9, status: 'FULL' },
+      { date: 'April 05, 2025', time: '01:00 PM', location: 'ASIRI Hospital - Colombo', appointments: 4, status: 'AVAILABLE' }
+    ],
+    otherLocations: [
+      'ASIRI Hospital - Galle',
+      'ASIRI Surgical Hospital - Kirimandala Mw - Colombo 05',
+      'Body Doc Medicare - Malabe'
+    ]
+  };
+
   const [rating, setRating] = useState(0);
   const [review, setReview] = useState('');
 
-  if (!doctor) {
-    return <div>No doctor information available</div>;
-  }
+  // Dummy reviews data
+  const dummyReviews = [
+    {
+      name: "John D.",
+      rating: 5,
+      date: "March 15, 2024",
+      comment: "Excellent doctor! Very knowledgeable and patient in explaining everything.",
+      verified: true
+    },
+    {
+      name: "Sarah M.",
+      rating: 4,
+      date: "March 10, 2024",
+      comment: "Professional and caring. Highly recommend for anyone looking for a specialist.",
+      verified: true
+    },
+    {
+      name: "Robert K.",
+      rating: 5,
+      date: "March 5, 2024",
+      comment: "Great experience overall. The doctor took time to address all my concerns.",
+      verified: true
+    }
+  ];
 
   return (
     <motion.div 
@@ -138,6 +177,63 @@ const DoctorAvailability = () => {
           </div>
         </motion.div>
       </div>
+
+      {/* Existing Reviews Section */}
+      <motion.div 
+        initial={{ y: 20, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ delay: 0.1 }}
+        className="bg-white rounded-lg shadow-lg p-6 mb-6"
+      >
+        <h2 className="text-xl font-semibold text-gray-800 mb-6 flex items-center justify-between">
+          <div className="flex items-center">
+            <span className="bg-purple-100 p-2 rounded-full mr-2">💬</span>
+            Patient Reviews
+          </div>
+          <div className="flex items-center">
+            <span className="text-2xl font-bold text-yellow-400">4.8</span>
+            <span className="text-gray-500 text-sm ml-2">(125 reviews)</span>
+          </div>
+        </h2>
+
+        {/* Review Cards */}
+        <div className="space-y-6">
+          {dummyReviews.map((review, index) => (
+            <motion.div
+              key={index}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2 + index * 0.1 }}
+              className="bg-gray-50 rounded-lg p-4 hover:shadow-md transition-shadow"
+            >
+              <div className="flex justify-between items-start mb-2">
+                <div>
+                  <div className="flex items-center">
+                    <span className="font-semibold text-gray-800">{review.name}</span>
+                    {review.verified && (
+                      <span className="ml-2 px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full">
+                        Verified Patient
+                      </span>
+                    )}
+                  </div>
+                  <div className="flex items-center mt-1">
+                    {[...Array(5)].map((_, i) => (
+                      <FaStar
+                        key={i}
+                        className={`w-4 h-4 ${
+                          i < review.rating ? 'text-yellow-400' : 'text-gray-300'
+                        }`}
+                      />
+                    ))}
+                    <span className="text-gray-500 text-sm ml-2">{review.date}</span>
+                  </div>
+                </div>
+              </div>
+              <p className="text-gray-600 mt-2">{review.comment}</p>
+            </motion.div>
+          ))}
+        </div>
+      </motion.div>
 
       {/* Reviews Section */}
       <motion.div 
