@@ -1,16 +1,27 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
+import Sidebar from "../../components/layout/Sidebar";
 
-const PatientDiagnosis = () => {
+const DiagnosisForm = () => {
   const [formData, setFormData] = useState({
-    patientName: '',
-    patientAge: '',
-    gender: '',
+    patientId: '',
     symptoms: '',
-    diagnosis: '',
-    testResults: '',
+    diagnosisDetails: '',
     treatmentPlan: '',
-    notes: '',
+    date: '', // Add the date field
   });
+
+  const [errorMessages, setErrorMessages] = useState([]);
+  const [successMessage, setSuccessMessage] = useState('');
+
+  // Set the initial date on component mount
+  useEffect(() => {
+    const currentDate = new Date().toISOString().split('T')[0]; // Get the current date in YYYY-MM-DD format
+    setFormData((prevState) => ({
+      ...prevState,
+      date: currentDate, // Set the current date to the 'date' field
+    }));
+  }, []);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -20,145 +31,143 @@ const PatientDiagnosis = () => {
     });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // Handle form submission (e.g., send the data to the server or display it)
-    console.log(formData);
-    alert('Diagnosis form submitted successfully!');
-    setFormData({
-      patientName: '',
-      patientAge: '',
-      gender: '',
-      symptoms: '',
-      diagnosis: '',
-      testResults: '',
-      treatmentPlan: '',
-      notes: '',
-    });
+
+    // Reset error messages
+    setErrorMessages([]);
+
+    // Validate form fields before submission
+    let errors = [];
+    if (!formData.patientId) errors.push('Patient ID is required');
+    if (!formData.symptoms.trim()) errors.push('Symptoms are required');
+    if (!formData.diagnosisDetails.trim()) errors.push('Diagnosis details are required');
+    if (!formData.treatmentPlan.trim()) errors.push('Treatment Plan details are required');
+    if (!formData.date) errors.push('Date is required'); // Validate date
+
+    if (errors.length > 0) {
+      setErrorMessages(errors);
+      return;
+    }
+
+    try {
+      const response = await axios.post('/api/diagnosis', formData);
+
+      setSuccessMessage('Diagnosis created successfully');
+      setFormData({
+        patientId: '',
+        symptoms: '',
+        diagnosisDetails: '',
+        treatmentPlan: '',
+        date: '', // Reset date field
+      });
+    } catch (error) {
+      setErrorMessages([error.response?.data?.message || 'An error occurred']);
+    }
   };
 
   return (
-    <div className="max-w-xl mx-auto mt-8 p-6 bg-white rounded-lg shadow-md">
-      <h2 className="text-2xl font-semibold text-gray-700 mb-4">Patient Diagnosis Form</h2>
-      <form onSubmit={handleSubmit} className="space-y-4">
-        {/* Patient Name */}
-        <div>
-          <label className="block text-sm font-medium text-gray-600">Patient Name</label>
-          <input
-            type="text"
-            name="patientName"
-            value={formData.patientName}
-            onChange={handleChange}
-            required
-            className="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
-          />
-        </div>
+    <div className="flex">
+      {/* Sidebar - Pass the userRole as "dataentry" */}
+      <Sidebar userRole="dataentry" /> {/* Data Entry role */}
 
-        {/* Patient Age */}
-        <div>
-          <label className="block text-sm font-medium text-gray-600">Age</label>
-          <input
-            type="number"
-            name="patientAge"
-            value={formData.patientAge}
-            onChange={handleChange}
-            required
-            className="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
-          />
-        </div>
+      <div className="flex-1 p-6 ml-64"> {/* Main content */}
+        <form onSubmit={handleSubmit}>
+          <h2 className="text-xl font-semibold">Diagnosis Entry Form</h2>
 
-        {/* Gender */}
-        <div>
-          <label className="block text-sm font-medium text-gray-600">Gender</label>
-          <select
-            name="gender"
-            value={formData.gender}
-            onChange={handleChange}
-            required
-            className="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
-          >
-            <option value="">Select Gender</option>
-            <option value="male">Male</option>
-            <option value="female">Female</option>
-            <option value="other">Other</option>
-          </select>
-        </div>
+          {/* Patient ID */}
+          <div>
+            <label className="block text-sm font-medium text-gray-600">Patient ID</label>
+            <input
+              type="text"
+              name="patientId"
+              value={formData.patientId}
+              onChange={handleChange}
+              className="mt-1 block w-full p-2 border border-gray-300 rounded-md"
+              required
+            />
+          </div>
 
-        {/* Symptoms */}
-        <div>
-          <label className="block text-sm font-medium text-gray-600">Symptoms</label>
-          <textarea
-            name="symptoms"
-            value={formData.symptoms}
-            onChange={handleChange}
-            required
-            className="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
-            rows="4"
-          />
-        </div>
+          {/* Symptoms */}
+          <div>
+            <label className="block text-sm font-medium text-gray-600">Symptoms</label>
+            <textarea
+              name="symptoms"
+              value={formData.symptoms}
+              onChange={handleChange}
+              required
+              className="mt-1 block w-full p-2 border border-gray-300 rounded-md"
+              rows="3"
+            />
+          </div>
 
-        {/* Diagnosis */}
-        <div>
-          <label className="block text-sm font-medium text-gray-600">Diagnosis</label>
-          <textarea
-            name="diagnosis"
-            value={formData.diagnosis}
-            onChange={handleChange}
-            required
-            className="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
-            rows="4"
-          />
-        </div>
+          {/* Diagnosis Details */}
+          <div>
+            <label className="block text-sm font-medium text-gray-600">Diagnosis Details</label>
+            <textarea
+              name="diagnosisDetails"
+              value={formData.diagnosisDetails}
+              onChange={handleChange}
+              required
+              className="mt-1 block w-full p-2 border border-gray-300 rounded-md"
+              rows="3"
+            />
+          </div>
 
-        {/* Test Results */}
-        <div>
-          <label className="block text-sm font-medium text-gray-600">Test Results</label>
-          <textarea
-            name="testResults"
-            value={formData.testResults}
-            onChange={handleChange}
-            className="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
-            rows="4"
-          />
-        </div>
+          {/* Treatment Plan */}
+          <div>
+            <label className="block text-sm font-medium text-gray-600">Treatment Plan</label>
+            <textarea
+              name="treatmentPlan"
+              value={formData.treatmentPlan}
+              onChange={handleChange}
+              required
+              className="mt-1 block w-full p-2 border border-gray-300 rounded-md"
+              rows="3"
+            />
+          </div>
 
-        {/* Treatment Plan */}
-        <div>
-          <label className="block text-sm font-medium text-gray-600">Treatment Plan</label>
-          <textarea
-            name="treatmentPlan"
-            value={formData.treatmentPlan}
-            onChange={handleChange}
-            required
-            className="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
-            rows="4"
-          />
-        </div>
+          {/* Date (auto-filled with current date) */}
+          <div>
+            <label className="block text-sm font-medium text-gray-600">Date</label>
+            <input
+              type="date"
+              name="date"
+              value={formData.date}
+              onChange={handleChange}
+              className="mt-1 block w-full p-2 border border-gray-300 rounded-md"
+              required
+              readOnly // Optionally, make the date field read-only to prevent user modification
+            />
+          </div>
 
-        {/* Additional Notes */}
-        <div>
-          <label className="block text-sm font-medium text-gray-600">Notes</label>
-          <textarea
-            name="notes"
-            value={formData.notes}
-            onChange={handleChange}
-            className="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
-            rows="4"
-          />
-        </div>
+          {/* Error Messages */}
+          {errorMessages.length > 0 && (
+            <div className="mt-2 text-red-500">
+              {errorMessages.map((msg, index) => (
+                <p key={index}>{msg}</p>
+              ))}
+            </div>
+          )}
 
-        {/* Submit Button */}
-        <div>
+          {/* Success Message */}
+          {successMessage && (
+            <div className="mt-2 text-green-500">
+              <p>{successMessage}</p>
+            </div>
+          )}
+
+          {/* Submit Button */}
           <button
             type="submit"
-            className="w-full py-2 px-4 bg-indigo-600 text-white rounded-md shadow-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            className="mt-4 p-2 bg-indigo-600 text-white rounded-md"
           >
-            Submit Diagnosis
+            Submit
           </button>
-        </div>
-      </form>
+        </form>
+      </div>
     </div>
   );
 };
 
-export default PatientDiagnosis;
+export default DiagnosisForm;

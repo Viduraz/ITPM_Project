@@ -20,7 +20,8 @@ const diagnosisSchema = new mongoose.Schema({
     default: Date.now
   },
   symptoms: [{
-    type: String
+    type: String,
+    required: true
   }],
   diagnosisDetails: {
     type: String,
@@ -30,8 +31,19 @@ const diagnosisSchema = new mongoose.Schema({
     type: String,
     required: true
   },
-  notes: String,
-  followUpDate: Date
+  notes: {
+    type: String,
+    default: ''
+  },
+  followUpDate: Date,
+  treatmentPlan: {
+    type: String,
+    required: true
+  },
+  treatmentPlanDetails: {
+    type: String,
+    default: ''
+  }
 }, { timestamps: true });
 
 const Diagnosis = mongoose.model('Diagnosis', diagnosisSchema);

@@ -36,11 +36,35 @@ export const createDataEntryProfile = async (req, res) => {
   }
 };
 
-// Create new diagnosis (for Data Entry Role)
+// Create a Diagnosis Entry for Data Entry Role
 export const createDiagnosisDataEntry = async (req, res) => {
   try {
-    const { patientId, hospitalId, symptoms, diagnosisDetails, condition, notes, followUpDate } = req.body;
-    
+    const {
+      patientId,
+      hospitalId,
+      symptoms,
+      diagnosisDetails,
+      condition,
+      notes,
+      followUpDate,
+      treatmentPlanMedication,
+      treatmentPlanTherapy,
+      treatmentPlanLifestyle,
+      treatmentPlanSurgery,
+      treatmentPlanMonitoring,
+      treatmentPlanDetails
+    } = req.body;
+
+    // Basic validation for required fields
+    if (!patientId || !hospitalId || !symptoms || !diagnosisDetails || !condition) {
+      return res.status(400).json({ message: 'Patient ID, Hospital ID, Symptoms, Diagnosis Details, and Condition are required' });
+    }
+
+    // Optional validation for follow-up date if provided
+    if (followUpDate && isNaN(Date.parse(followUpDate))) {
+      return res.status(400).json({ message: 'Invalid follow-up date' });
+    }
+
     // Check if patient exists
     const patient = await Patient.findById(patientId);
     if (!patient) {
@@ -53,33 +77,82 @@ export const createDiagnosisDataEntry = async (req, res) => {
       return res.status(404).json({ message: 'Hospital not found' });
     }
 
-    const diagnosis = new Diagnosis({
+    // Create a new diagnosis entry with the relevant fields
+    const newDiagnosis = new Diagnosis({
       patient: patientId,
       hospital: hospitalId,
-      diagnosisDate: new Date(),
       symptoms,
       diagnosisDetails,
       condition,
       notes,
-      followUpDate
+      followUpDate,
+      treatmentPlan: {
+        medication: treatmentPlanMedication,
+        therapy: treatmentPlanTherapy,
+        lifestyle: treatmentPlanLifestyle,
+        surgery: treatmentPlanSurgery,
+        monitoring: treatmentPlanMonitoring
+      },
+      treatmentPlanDetails
     });
 
-    await diagnosis.save();
+    await newDiagnosis.save();
 
     res.status(201).json({
       message: 'Diagnosis created successfully by data entry',
-      diagnosis
+      diagnosis: newDiagnosis
     });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 };
 
-// Create new prescription (for Data Entry Role)
+// Create a Diagnosis Entry (for Doctor Role)
+export const createDiagnosis = async (req, res) => {
+  try {
+    const { patientId, doctorId, symptoms, diagnosisDetails, treatmentPlan } = req.body;
+
+    // Validate required fields
+    if (!patientId || !doctorId || !symptoms || !diagnosisDetails || !treatmentPlan) {
+      return res.status(400).json({ message: 'Patient ID, Doctor ID, Symptoms, Diagnosis Details, and Treatment Plan are required' });
+    }
+
+    // Check if the patient and doctor exist in the database
+    const patient = await Patient.findById(patientId);
+    const doctor = await Doctor.findById(doctorId);
+
+    if (!patient) {
+      return res.status(404).json({ message: 'Patient not found' });
+    }
+    if (!doctor) {
+      return res.status(404).json({ message: 'Doctor not found' });
+    }
+
+    // Create the diagnosis entry
+    const newDiagnosis = new Diagnosis({
+      patient: patientId,
+      doctor: doctorId,
+      symptoms,
+      diagnosisDetails,
+      treatmentPlan
+    });
+
+    // Save the diagnosis entry to the database
+    await newDiagnosis.save();
+
+    // Return the saved diagnosis entry
+    return res.status(201).json({ message: 'Diagnosis created successfully', diagnosis: newDiagnosis });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: 'An error occurred while creating the diagnosis', error: error.message });
+  }
+};
+
+// Create a new prescription (for Data Entry Role)
 export const createPrescriptionDataEntry = async (req, res) => {
   try {
     const { patientId, hospitalId, diagnosisId, medications, notes } = req.body;
-    
+
     // Check if patient exists
     const patient = await Patient.findById(patientId);
     if (!patient) {
