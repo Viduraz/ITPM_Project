@@ -44,7 +44,7 @@ const roleRedirects = {
   pharmacy: "/pharmacy/dashboard",
   laboratory: "/laboratory/dashboard",
   admin: "/admin/dashboard",
-  dataentry: "/dataentry/dashboard",
+  dataentry: "/dataentry/dashboard", // This is redirecting to a route that's commented out
 };
 
 // 🔒 Protected Route Component
@@ -217,14 +217,14 @@ function App() {
             </ProtectedRoute>
           } />
 
-          {/* 📊 Data Entry Routes
+          {/* 📊 Data Entry Routes */}
           <Route path="/dataentry/dashboard" element={
             <ProtectedRoute allowedRoles={['dataentry', 'admin']}>
               <DashboardLayout>
                 <DataEntryDashboard />
               </DashboardLayout>
             </ProtectedRoute>
-          } />*/}
+          } />
           <Route path="/dataentry/patientprescriptions" element={
             <ProtectedRoute allowedRoles={['dataentry', 'admin']}>
               <DashboardLayout>
