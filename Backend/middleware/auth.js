@@ -30,6 +30,7 @@ export const authenticateToken = async (req, res, next) => {
   }
 };
 
+// In auth.js, confirm dataentry is handled properly in authorizeRoles
 export const authorizeRoles = (...roles) => {
   return (req, res, next) => {
     if (!roles.includes(req.user.role)) {

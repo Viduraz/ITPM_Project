@@ -217,14 +217,7 @@ function App() {
             </ProtectedRoute>
           } />
 
-<Route path="/dataentry/dashboard" element={<DataEntryDashboard />} />
-<Route path="/dataentry/patientprescriptions" element={<PatientPrescription />} />
-<Route path="/dataentry/patientdiagnosis" element={<PatientDiagnosis />} />
-
-
-
-
-          {/* 📊 Data Entry Routes
+          {/* 📊 Data Entry Routes*/}
           <Route path="/dataentry/dashboard" element={
             <ProtectedRoute allowedRoles={['dataentry', 'admin']}>
               <DashboardLayout>
@@ -232,7 +225,20 @@ function App() {
               </DashboardLayout>
             </ProtectedRoute>
           } />
-            */}
+          <Route path="/dataentry/PatientPrescriptions" element={
+            <ProtectedRoute allowedRoles={['dataentry', 'admin']}>
+              <DashboardLayout>
+                <PatientPrescription />
+              </DashboardLayout>
+            </ProtectedRoute>
+          } />
+          <Route path="/dataentry/patientdiagnosis" element={
+            <ProtectedRoute allowedRoles={['dataentry', 'admin']}>
+              <DashboardLayout>
+                <PatientDiagnosis />
+              </DashboardLayout>
+            </ProtectedRoute>
+          } />
 
           {/* 🚨 404 Fallback Route */}
           <Route path="*" element={<Navigate to="/" replace />} />

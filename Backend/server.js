@@ -7,6 +7,7 @@ import doctorRoutes from './routes/doctorRoutes.js';
 import patientRoutes from './routes/patientRoutes.js';
 import pharmacyRoutes from './routes/pharmacyRoutes.js';
 import laboratoryRoutes from './routes/laboratoryRoutes.js';
+import dataentryRoutes from './routes/dataentryRoutes.js'; // Import data entry routes
 
 // Load environment variables
 dotenv.config();
@@ -38,6 +39,7 @@ app.use('/api/doctor', doctorRoutes);
 app.use('/api/patient', patientRoutes);
 app.use('/api/pharmacy', pharmacyRoutes);
 app.use('/api/laboratory', laboratoryRoutes);
+app.use('/api/dataentry', dataentryRoutes); // Add data entry routes
 
 // Simple test route
 app.get('/api', (req, res) => {

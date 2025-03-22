@@ -49,6 +49,10 @@ export const AuthProvider = ({ children }) => {
           api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
           const response = await api.get('/api/auth/me');
           setUser(response.data);
+          if (response.data && response.data.role === 'dataentry') {
+            // If needed, fetch additional dataentry profile data here
+            console.log('Data entry user authenticated:', response.data);
+          }
         } catch (error) {
           console.error('Auth verification failed:', error);
           localStorage.removeItem('token');
@@ -76,6 +80,10 @@ export const AuthProvider = ({ children }) => {
       api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
       
       setUser(user);
+      if (user && user.role === 'dataentry') {
+        // If needed, fetch additional dataentry profile data here
+        console.log('Data entry user authenticated:', user);
+      }
       return user;
     } catch (error) {
       setError(error.response?.data?.message || 'Login failed. Please check your credentials.');
@@ -98,6 +106,10 @@ export const AuthProvider = ({ children }) => {
       api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
       
       setUser(user);
+      if (user && user.role === 'dataentry') {
+        // If needed, fetch additional dataentry profile data here
+        console.log('Data entry user authenticated:', user);
+      }
       return user;
     } catch (error) {
       setError(error.response?.data?.message || 'Registration failed. Please try again.');

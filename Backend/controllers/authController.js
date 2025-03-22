@@ -5,6 +5,7 @@ import Patient from '../models/Patient.js';
 import Doctor from '../models/Doctor.js';
 import Pharmacy from '../models/Pharmacy.js';
 import Laboratory from '../models/Laboratory.js';
+import DataEntry from '../models/DataEntry.js'; // Add this import
 
 // Generate JWT token
 const generateToken = (userId) => {
@@ -33,10 +34,23 @@ export const register = async (req, res) => {
       password,
       role,
       contactNumber,
-      profileImage
+      profileImage,
     });
 
     await user.save();
+
+    // If user is data entry, create a data entry profile
+    if (role === 'dataentry') {
+      const dataEntry = new DataEntry({
+        userId: user._id,
+        workShift: 'Morning', // Default values
+        supervisor: user._id, // Temporary self-reference until admin assigns
+        department: 'General',
+        assignedTasks: []
+      });
+      
+      await dataEntry.save();
+    }
 
     // Generate token
     const token = generateToken(user._id);
@@ -68,14 +82,28 @@ export const login = async (req, res) => {
       return res.status(401).json({ message: 'Invalid email or password' });
     }
 
-    // Compare passwords
-    const hashedPassword = crypto.createHash('sha256').update(password).digest('hex');
-    if (hashedPassword !== user.password) {
+    // Compare passwords using bcrypt (using the method from User model)
+    const isMatch = await user.matchPassword(password);
+    if (!isMatch) {
       return res.status(401).json({ message: 'Invalid email or password' });
     }
 
     // Generate token
     const token = generateToken(user._id);
+
+    // Get profile data based on role
+    let profileData = null;
+    if (user.role === 'dataentry') {
+      profileData = await DataEntry.findOne({ userId: user._id });
+    } else if (user.role === 'patient') {
+      profileData = await Patient.findOne({ userId: user._id });
+    } else if (user.role === 'doctor') {
+      profileData = await Doctor.findOne({ userId: user._id });
+    } else if (user.role === 'pharmacy') {
+      profileData = await Pharmacy.findOne({ userId: user._id });
+    } else if (user.role === 'laboratory') {
+      profileData = await Laboratory.findOne({ userId: user._id });
+    }
 
     res.status(200).json({
       message: 'Login successful',
@@ -86,7 +114,8 @@ export const login = async (req, res) => {
         lastName: user.lastName,
         email: user.email,
         role: user.role
-      }
+      },
+      profile: profileData
     });
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -200,3 +229,75 @@ export const registerLaboratory = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+
+// Register data entry operator
+export const registerDataEntry = async (req, res) => {
+  try {
+    const { userId, workShift, supervisor, department } = req.body;
+
+    // Check if data entry profile already exists
+    const existingDataEntry = await DataEntry.findOne({ userId });
+    if (existingDataEntry) {
+      return res.status(400).json({ message: 'Data Entry profile already exists for this user' });
+    }
+
+    const dataEntry = new DataEntry({
+      userId,
+      workShift: workShift || 'Morning',
+      supervisor: supervisor || userId,
+      department: department || 'General',
+      assignedTasks: []
+    });
+
+    await dataEntry.save();
+
+    // Update user role if needed
+    const user = await User.findById(userId);
+    if (user && user.role !== 'dataentry') {
+      user.role = 'dataentry';
+      await user.save();
+    }
+
+    res.status(201).json({
+      message: 'Data Entry operator registered successfully',
+      dataEntry
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// Get current user profile with additional checks for data entry
+export const getCurrentUser = async (req, res) => {
+  try {
+    const user = req.user;
+    let profileData = null;
+
+    // Fetch profile data based on role
+    if (user.role === 'patient') {
+      profileData = await Patient.findOne({ userId: user._id });
+    } else if (user.role === 'doctor') {
+      profileData = await Doctor.findOne({ userId: user._id });
+    } else if (user.role === 'pharmacy') {
+      profileData = await Pharmacy.findOne({ userId: user._id });
+    } else if (user.role === 'laboratory') {
+      profileData = await Laboratory.findOne({ userId: user._id });
+    } else if (user.role === 'dataentry') {
+      profileData = await DataEntry.findOne({ userId: user._id });
+    }
+
+    res.status(200).json({
+      user: {
+        id: user._id,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        email: user.email,
+        role: user.role
+      },
+      profile: profileData
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
