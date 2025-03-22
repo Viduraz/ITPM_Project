@@ -217,15 +217,15 @@ function App() {
             </ProtectedRoute>
           } />
 
-          {/* 📊 Data Entry Routes*/}
+          {/* 📊 Data Entry Routes
           <Route path="/dataentry/dashboard" element={
             <ProtectedRoute allowedRoles={['dataentry', 'admin']}>
               <DashboardLayout>
                 <DataEntryDashboard />
               </DashboardLayout>
             </ProtectedRoute>
-          } />
-          <Route path="/dataentry/PatientPrescriptions" element={
+          } />*/}
+          <Route path="/dataentry/patientprescriptions" element={
             <ProtectedRoute allowedRoles={['dataentry', 'admin']}>
               <DashboardLayout>
                 <PatientPrescription />
