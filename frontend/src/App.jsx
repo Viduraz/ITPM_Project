@@ -227,7 +227,6 @@ function App() {
             </ProtectedRoute>
           } />
 
-          } />
           <Route path="/dataentry/patientprescriptions" element={
             <ProtectedRoute allowedRoles={['dataentry', 'admin']}>
               <DashboardLayout>
