@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import Sidebar from "../../components/layout/Sidebar";
 
-const DiagnosisForm = () => {
+const PatientDiagnosis = () => {
   const [formData, setFormData] = useState({
     patientId: '',
     symptoms: '',
@@ -170,4 +170,4 @@ const DiagnosisForm = () => {
   );
 };
 
-export default DiagnosisForm;
+export default PatientDiagnosis;

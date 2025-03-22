@@ -217,7 +217,7 @@ function App() {
             </ProtectedRoute>
           } />
 
-          {/*📊 Data Entry Routes*/}
+
           {/* 📊 Data Entry Routes */}
           <Route path="/dataentry/dashboard" element={
             <ProtectedRoute allowedRoles={['dataentry', 'admin']}>
@@ -234,6 +234,7 @@ function App() {
               </DashboardLayout>
             </ProtectedRoute>
           } />
+
           <Route path="/dataentry/patientdiagnosis" element={
             <ProtectedRoute allowedRoles={['dataentry', 'admin']}>
               <DashboardLayout>
