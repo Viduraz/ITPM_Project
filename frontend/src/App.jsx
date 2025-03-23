@@ -33,6 +33,10 @@ import AdminDashboard from './admin/AdminDashboard';
 import UserManagement from './admin/UserManagement';
 import SystemStats from './admin/SystemStats';
 
+import DataEntryDashboard from './pages/dataentry/DataEntryDashboard';
+import PatientDiagnosis from './pages/dataentry/PatientDiagnosis';
+import PatientPrescription from './pages/dataentry/PatientPrescription';
+
 // Protected Route Component
 const ProtectedRoute = ({ children, allowedRoles }) => {
   const { user, loading } = useAuth();
@@ -51,6 +55,7 @@ const ProtectedRoute = ({ children, allowedRoles }) => {
     if (user.role === 'doctor') return <Navigate to="/doctor/dashboard" />;
     if (user.role === 'pharmacy') return <Navigate to="/pharmacy/dashboard" />;
     if (user.role === 'laboratory') return <Navigate to="/laboratory/dashboard" />;
+    if (user.role === 'dataentry') return <Navigate to="/dataentry/dashboard" />;
     if (user.role === 'admin') return <Navigate to="/admin/dashboard" />;
     return <Navigate to="/login" />;
   }
@@ -70,6 +75,7 @@ const DashboardRedirect = () => {
   if (user.role === 'doctor') return <Navigate to="/doctor/dashboard" />;
   if (user.role === 'pharmacy') return <Navigate to="/pharmacy/dashboard" />;
   if (user.role === 'laboratory') return <Navigate to="/laboratory/dashboard" />;
+  if (user.role === 'dataentry') return <Navigate to="/dataentry/dashboard" />;
   if (user.role === 'admin') return <Navigate to="/admin/dashboard" />;
   
   return <Navigate to="/" />;
@@ -210,6 +216,29 @@ function App() {
             <ProtectedRoute allowedRoles={['admin']}>
               <DashboardLayout>
                 <SystemStats />
+              </DashboardLayout>
+            </ProtectedRoute>
+          } />
+          
+          {/* Data Entry Routes */}
+          <Route path="/dataentry/dashboard" element={
+            <ProtectedRoute allowedRoles={['dataentry', 'admin']}>
+              <DashboardLayout>
+                <DataEntryDashboard />
+              </DashboardLayout>
+            </ProtectedRoute>
+          } />
+          <Route path="/dataentry/patientdiagnosis" element={
+            <ProtectedRoute allowedRoles={['dataentry', 'admin']}>
+              <DashboardLayout>
+                <PatientDiagnosis />
+              </DashboardLayout>
+            </ProtectedRoute>
+          } />
+          <Route path="/dataentry/patientprescriptions" element={
+            <ProtectedRoute allowedRoles={['dataentry', 'admin']}>
+              <DashboardLayout>
+                <PatientPrescription />
               </DashboardLayout>
             </ProtectedRoute>
           } />
