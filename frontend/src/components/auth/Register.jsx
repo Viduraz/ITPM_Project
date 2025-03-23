@@ -147,11 +147,11 @@ const Register = () => {
   const handleChange = (e) => {
     const { name, value } = e.target;
     
-    // Special handling for numeric-only fields handling for numeric-only fields
-    if ((name === 'contactNumber' || name === 'IdNumber') && !/^\d*$/.test(value)) {contactNumber' || name === 'IdNumber') && !/^\d*$/.test(value)) {
-      // If non-digit characters are entered, don't update the state If non-digit characters are entered, don't update the state
-      return;  return;
-    }    }
+    // Special handling for numeric-only fields
+    if ((name === 'contactNumber' || name === 'IdNumber') && !/^\d*$/.test(value)) {
+      // If non-digit characters are entered, don't update the state
+      return;
+    }
     
     setFormData(prev => ({
       ...prev,
@@ -159,16 +159,16 @@ const Register = () => {
     }));
   };
 
-  const nextStep = () => {nst nextStep = () => {
+  const nextStep = () => {
     // Validate all fields in step 1 before proceeding
-    const isFirstNameValid = validateField('firstName', formData.firstName);id = validateField('firstName', formData.firstName);
-    const isLastNameValid = validateField('lastName', formData.lastName);onst isLastNameValid = validateField('lastName', formData.lastName);
-    const isEmailValid = validateField('email', formData.email);const isEmailValid = validateField('email', formData.email);
-    const isPasswordValid = validateField('password', formData.password);    const isPasswordValid = validateField('password', formData.password);
-    const isConfirmPasswordValid = validateField('confirmPassword', formData.confirmPassword);dValid = validateField('confirmPassword', formData.confirmPassword);
+    const isFirstNameValid = validateField('firstName', formData.firstName);
+    const isLastNameValid = validateField('lastName', formData.lastName);
+    const isEmailValid = validateField('email', formData.email);
+    const isPasswordValid = validateField('password', formData.password);
+    const isConfirmPasswordValid = validateField('confirmPassword', formData.confirmPassword);
     
-    if (isFirstNameValid && isLastNameValid && isEmailValid && isPasswordValid && isConfirmPasswordValid) {if (isFirstNameValid && isLastNameValid && isEmailValid && isPasswordValid && isConfirmPasswordValid) {
-      setStep(step + 1);      setStep(step + 1);
+    if (isFirstNameValid && isLastNameValid && isEmailValid && isPasswordValid && isConfirmPasswordValid) {
+      setStep(step + 1);
     }
   };
 
@@ -176,21 +176,21 @@ const Register = () => {
     setStep(step - 1);
   };
 
-  const validateStep1 = () => {t validateStep1 = () => {
-    return (return (
-      validations.firstName.valid &&       validations.firstName.valid && 
-      validations.lastName.valid && d && 
+  const validateStep1 = () => {
+    return (
+      validations.firstName.valid && 
+      validations.lastName.valid && 
       validations.email.valid && 
-      validations.password.valid &&   validations.password.valid && 
-      validations.confirmPassword.valid      validations.confirmPassword.valid
+      validations.password.valid && 
+      validations.confirmPassword.valid
     );
   };
 
-  const validateStep2 = () => { {
-    return validations.contactNumber.valid && validations.IdNumber.valid;alidations.IdNumber.valid;
+  const validateStep2 = () => {
+    return validations.contactNumber.valid && validations.IdNumber.valid;
   };
 
-  const handleSubmit = async (e) => {  const handleSubmit = async (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     
     // Final validation check
@@ -200,57 +200,57 @@ const Register = () => {
 
     setIsLoading(true);
     try {
-      // Remove confirmPassword before sendingding
-      const { confirmPassword, ...userData } = formData;Data } = formData;
-      const user = await register(userData);;
+      // Remove confirmPassword before sending
+      const { confirmPassword, ...userData } = formData;
+      const user = await register(userData);
       
       // Redirect based on user role
       if (user.role === 'admin') {
         navigate('/admin/dashboard');
       } else if (user.role === 'doctor') {
         navigate('/doctor/dashboard');
-      } else if (user.role === 'patient') { {
-        navigate('/patient/dashboard');te('/patient/dashboard');
-      } else if (user.role === 'pharmacy') {'pharmacy') {
-        navigate('/pharmacy/dashboard'); navigate('/pharmacy/dashboard');
-      } else if (user.role === 'laboratory') {er.role === 'laboratory') {
+      } else if (user.role === 'patient') {
+        navigate('/patient/dashboard');
+      } else if (user.role === 'pharmacy') {
+        navigate('/pharmacy/dashboard');
+      } else if (user.role === 'laboratory') {
         navigate('/laboratory/dashboard');
-      } else if (user.role === 'dataentry') { (user.role === 'dataentry') {
-        navigate('/dataentry/dashboard');ry/dashboard');
-      } else { } else {
-        navigate('/dashboard');    navigate('/dashboard');
-      }      }
+      } else if (user.role === 'dataentry') {
+        navigate('/dataentry/dashboard');
+      } else {
+        navigate('/dashboard');
+      }
     } catch (err) {
       console.error('Registration error:', err);
     } finally {
-      setIsLoading(false);  setIsLoading(false);
+      setIsLoading(false);
     }
   };
 
-  // Modified renderField functionn
-  const renderField = (id, label, type, required = true) => {, type, required = true) => {
+  // Modified renderField function
+  const renderField = (id, label, type, required = true) => {
     const validation = validations[id];
     
     // Extra props for specific fields
-    const extraProps = {};onst extraProps = {};
+    const extraProps = {};
     
-    if (id === 'contactNumber') {r') {
+    if (id === 'contactNumber') {
       extraProps.maxLength = 10;
       extraProps.pattern = '[0-9]*'; // Only allow digits
       extraProps.inputMode = 'numeric'; // Show numeric keyboard on mobile
       extraProps.placeholder = '0771234567';
     }
     
-    if (id === 'IdNumber') {== 'IdNumber') {
-      extraProps.maxLength = 12;Props.maxLength = 12;
+    if (id === 'IdNumber') {
+      extraProps.maxLength = 12;
       extraProps.pattern = '[0-9]*'; // Only allow digits
-      extraProps.inputMode = 'numeric'; // Show numeric keyboard on mobileinputMode = 'numeric'; // Show numeric keyboard on mobile
-      extraProps.placeholder = '199912345678';.placeholder = '199912345678';
+      extraProps.inputMode = 'numeric'; // Show numeric keyboard on mobile
+      extraProps.placeholder = '199912345678';
     }
     
     return (
       <div>
-        <label htmlFor={id} className="block text-sm font-medium text-gray-700">{id} className="block text-sm font-medium text-gray-700">
+        <label htmlFor={id} className="block text-sm font-medium text-gray-700">
           {label}
         </label>
         <div className="mt-1 relative">
@@ -258,23 +258,23 @@ const Register = () => {
             id={id}
             name={id}
             type={type}
-            required={required}required={required}
-            className={`block w-full px-3 py-2 border ${full px-3 py-2 border ${
+            required={required}
+            className={`block w-full px-3 py-2 border ${
               validation.message ? 'border-red-300' : 'border-gray-300'
-            } rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm`}s:ring-indigo-500 focus:border-indigo-500 sm:text-sm`}
+            } rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm`}
             value={formData[id]}
-            onChange={handleChange}={handleChange}
-            {...extraProps}raProps}
+            onChange={handleChange}
+            {...extraProps}
           />
-          {validation.valid && (idation.valid && (
-            <span className="absolute inset-y-0 right-0 pr-3 flex items-center text-green-500">olute inset-y-0 right-0 pr-3 flex items-center text-green-500">
-              <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">20">
-                <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-              </svg>  </svg>
-            </span>      </span>
-          )}      )}
-        </div>        </div>
-        {validation.message && (alidation.message && (
+          {validation.valid && (
+            <span className="absolute inset-y-0 right-0 pr-3 flex items-center text-green-500">
+              <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+              </svg>
+            </span>
+          )}
+        </div>
+        {validation.message && (
           <p className="mt-1 text-sm text-red-600">{validation.message}</p>
         )}
       </div>
@@ -282,178 +282,171 @@ const Register = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">reen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-8">ssName="max-w-md w-full space-y-8">
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-md w-full space-y-8">
         <div>
-          <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">          <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
+          <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
             Create your account
           </h2>
-          <p className="mt-2 text-center text-sm text-gray-600">r text-sm text-gray-600">
+          <p className="mt-2 text-center text-sm text-gray-600">
             Step {step} of 2
           </p>
         </div>
 
-        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>Name="mt-8 space-y-6" onSubmit={handleSubmit}>
+        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
           {step === 1 && (
-            <div className="space-y-4">="space-y-4">
-              {renderField('firstName', 'First Name', 'text')}ld('firstName', 'First Name', 'text')}
-              {renderField('lastName', 'Last Name', 'text')}me', 'text')}
-              {renderField('email', 'Email address', 'email')}ld('email', 'Email address', 'email')}
+            <div className="space-y-4">
+              {renderField('firstName', 'First Name', 'text')}
+              {renderField('lastName', 'Last Name', 'text')}
+              {renderField('email', 'Email address', 'email')}
               
               <div>
-                <label htmlFor="password" className="block text-sm font-medium text-gray-700">sword" className="block text-sm font-medium text-gray-700">
+                <label htmlFor="password" className="block text-sm font-medium text-gray-700">
                   Password
                 </label>
                 <div className="mt-1 relative">
                   <input
                     id="password"
                     name="password"
-                    type="password"type="password"
+                    type="password"
                     required
                     className={`block w-full px-3 py-2 border ${
-                      validations.password.message ? 'border-red-300' : 'border-gray-300'0'
+                      validations.password.message ? 'border-red-300' : 'border-gray-300'
                     } rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm`}
-                    value={formData.password}ormData.password}
-                    onChange={handleChange}e={handleChange}
+                    value={formData.password}
+                    onChange={handleChange}
                   />
-                  {validations.password.valid && (idations.password.valid && (
-                    <span className="absolute inset-y-0 right-0 pr-3 flex items-center text-green-500">    <span className="absolute inset-y-0 right-0 pr-3 flex items-center text-green-500">
-                      <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                  {validations.password.valid && (
+                    <span className="absolute inset-y-0 right-0 pr-3 flex items-center text-green-500">
+                      <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                       </svg>
-                    </span>n>
+                    </span>
                   )}
                 </div>
                 
-                {/* Password strength meter */}word strength meter */}
+                {/* Password strength meter */}
                 <div className="mt-1">
-                  <div className="w-full bg-gray-200 rounded-full h-2.5">l h-2.5">
-                    <div iv 
-                      className={`h-2.5 rounded-full ${getPasswordStrengthLabel().color}`}     className={`h-2.5 rounded-full ${getPasswordStrengthLabel().color}`} 
-                      style={{ width: `${passwordStrength.score * 20}%` }}rdStrength.score * 20}%` }}
+                  <div className="w-full bg-gray-200 rounded-full h-2.5">
+                    <div 
+                      className={`h-2.5 rounded-full ${getPasswordStrengthLabel().color}`} 
+                      style={{ width: `${passwordStrength.score * 20}%` }}
                     ></div>
                   </div>
                   <p className="text-xs text-gray-600 mt-1">
-                    Strength: {getPasswordStrengthLabel().label}trengthLabel().label}
+                    Strength: {getPasswordStrengthLabel().label}
                   </p>
                   
                   {/* Password requirements */}
-                  <ul className="mt-1 text-xs text-gray-600 space-y-1">gray-600 space-y-1">
-                    <li className={`flex items-center ${passwordStrength.hasMinLength ? 'text-green-500' : 'text-gray-500'}`}>lassName={`flex items-center ${passwordStrength.hasMinLength ? 'text-green-500' : 'text-gray-500'}`}>
+                  <ul className="mt-1 text-xs text-gray-600 space-y-1">
+                    <li className={`flex items-center ${passwordStrength.hasMinLength ? 'text-green-500' : 'text-gray-500'}`}>
                       <span className="mr-1">{passwordStrength.hasMinLength ? '✓' : '○'}</span>
                       At least 8 characters
                     </li>
-                    <li className={`flex items-center ${passwordStrength.hasUppercase ? 'text-green-500' : 'text-gray-500'}`}>lassName={`flex items-center ${passwordStrength.hasUppercase ? 'text-green-500' : 'text-gray-500'}`}>
+                    <li className={`flex items-center ${passwordStrength.hasUppercase ? 'text-green-500' : 'text-gray-500'}`}>
                       <span className="mr-1">{passwordStrength.hasUppercase ? '✓' : '○'}</span>
                       At least one uppercase letter
                     </li>
-                    <li className={`flex items-center ${passwordStrength.hasLowercase ? 'text-green-500' : 'text-gray-500'}`}>lassName={`flex items-center ${passwordStrength.hasLowercase ? 'text-green-500' : 'text-gray-500'}`}>
+                    <li className={`flex items-center ${passwordStrength.hasLowercase ? 'text-green-500' : 'text-gray-500'}`}>
                       <span className="mr-1">{passwordStrength.hasLowercase ? '✓' : '○'}</span>
                       At least one lowercase letter
                     </li>
-                    <li className={`flex items-center ${passwordStrength.hasNumber ? 'text-green-500' : 'text-gray-500'}`}>lassName={`flex items-center ${passwordStrength.hasNumber ? 'text-green-500' : 'text-gray-500'}`}>
-                      <span className="mr-1">{passwordStrength.hasNumber ? '✓' : '○'}</span>span className="mr-1">{passwordStrength.hasNumber ? '✓' : '○'}</span>
-                      At least one numberAt least one number
-                    </li>    </li>
-                    <li className={`flex items-center ${passwordStrength.hasSpecialChar ? 'text-green-500' : 'text-gray-500'}`}>ter ${passwordStrength.hasSpecialChar ? 'text-green-500' : 'text-gray-500'}`}>
-                      <span className="mr-1">{passwordStrength.hasSpecialChar ? '✓' : '○'}</span>pan>
-                      At least one special character    At least one special character
-                    </li></li>
-                  </ul>    </ul>
+                    <li className={`flex items-center ${passwordStrength.hasNumber ? 'text-green-500' : 'text-gray-500'}`}>
+                      <span className="mr-1">{passwordStrength.hasNumber ? '✓' : '○'}</span>
+                      At least one number
+                    </li>
+                    <li className={`flex items-center ${passwordStrength.hasSpecialChar ? 'text-green-500' : 'text-gray-500'}`}>
+                      <span className="mr-1">{passwordStrength.hasSpecialChar ? '✓' : '○'}</span>
+                      At least one special character
+                    </li>
+                  </ul>
                 </div>
                                 
-                {validations.password.message && ( (
-                  <p className="mt-1 text-sm text-red-600">{validations.password.message}</p>assName="mt-1 text-sm text-red-600">{validations.password.message}</p>
+                {validations.password.message && (
+                  <p className="mt-1 text-sm text-red-600">{validations.password.message}</p>
                 )}
               </div>
               
-              {renderField('confirmPassword', 'Confirm Password', 'password')}ord', 'password')}
+              {renderField('confirmPassword', 'Confirm Password', 'password')}
 
               <div className="flex justify-end">
                 <button
                   type="button"
-                  className={`inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white ${ className={`inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white ${
-                    validateStep1() lidateStep1() 
-                      ? 'bg-indigo-600 hover:bg-indigo-700' bg-indigo-600 hover:bg-indigo-700' 
-                      : 'bg-indigo-300 cursor-not-allowed'  : 'bg-indigo-300 cursor-not-allowed'
-                  } focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500`}} focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500`}
-                  onClick={nextStep}      onClick={nextStep}
-                  disabled={!validateStep1()}                  disabled={!validateStep1()}
+                  className={`inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white ${
+                    validateStep1() 
+                      ? 'bg-indigo-600 hover:bg-indigo-700' 
+                      : 'bg-indigo-300 cursor-not-allowed'
+                  } focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500`}
+                  onClick={nextStep}
+                  disabled={!validateStep1()}
                 >
                   Next
                 </button>
               </div>
-            </div>div>
+            </div>
           )}
 
-          {step === 2 && (& (
-            <div className="space-y-4">"space-y-4">
-              {renderField('contactNumber', 'Contact Number', 'tel')}ontactNumber', 'Contact Number', 'tel')}
+          {step === 2 && (
+            <div className="space-y-4">
+              {renderField('contactNumber', 'Contact Number', 'tel')}
               {renderField('IdNumber', 'ID Number', 'text')}
               
               <div>
-                <label htmlFor="role" className="block text-sm font-medium text-gray-700">Role</label>label htmlFor="role" className="block text-sm font-medium text-gray-700">Role</label>
+                <label htmlFor="role" className="block text-sm font-medium text-gray-700">Role</label>
                 <select
                   id="role"
                   name="role"
-                  className="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                  className="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
                   value={formData.role}
                   onChange={handleChange}
                 >
-                  <option value="patient">Patient</option>ption value="patient">Patient</option>
-                  <option value="doctor">Doctor</option>                  <option value="doctor">Doctor</option>
-                  <option value="pharmacy">Pharmacy</option> value="pharmacy">Pharmacy</option>
+                  <option value="patient">Patient</option>
+                  <option value="doctor">Doctor</option>
+                  <option value="pharmacy">Pharmacy</option>
                   <option value="laboratory">Laboratory</option>
-                  <option value="dataentry">Data Entry</option>"dataentry">Data Entry</option>
-                  <option value="admin">Admin</option>ion value="admin">Admin</option>
-                </select></select>
-              </div>              </div>
+                  <option value="dataentry">Data Entry</option>
+                  <option value="admin">Admin</option>
+                </select>
+              </div>
 
-              {error && ( (
-                <div className="p-2 bg-red-100 border-l-4 border-red-500 text-red-700">"p-2 bg-red-100 border-l-4 border-red-500 text-red-700">
+              {error && (
+                <div className="p-2 bg-red-100 border-l-4 border-red-500 text-red-700">
                   <p>{error}</p>
                 </div>
               )}
 
-              <div className="flex justify-between">ame="flex justify-between">
-                <button<button
-                  type="button""button"
-                  className="inline-flex justify-center py-2 px-4 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"line-flex justify-center py-2 px-4 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+              <div className="flex justify-between">
+                <button
+                  type="button"
+                  className="inline-flex justify-center py-2 px-4 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
                   onClick={prevStep}
                 >
                   Back
                 </button>
                 
                 <button
-                  type="submit" type="submit"
+                  type="submit"
                   disabled={isLoading || !validateStep2()}
-                  className={`inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white ${me={`inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white ${
-                    validateStep2() && !isLoadingvalidateStep2() && !isLoading
-                      ? 'bg-indigo-600 hover:bg-indigo-700'     ? 'bg-indigo-600 hover:bg-indigo-700' 
-                      : 'bg-indigo-300 cursor-not-allowed'          : 'bg-indigo-300 cursor-not-allowed'
-                  } focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500`}   } focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500`}
-                >        >
-                  {isLoading ? 'Creating account...' : 'Create account'}unt...' : 'Create account'}
+                  className={`inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white ${
+                    validateStep2() && !isLoading
+                      ? 'bg-indigo-600 hover:bg-indigo-700' 
+                      : 'bg-indigo-300 cursor-not-allowed'
+                  } focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500`}
+                >
+                  {isLoading ? 'Creating account...' : 'Create account'}
                 </button>
               </div>
             </div>
           )}
-        </form>>
+        </form>
         
-        <div className="text-sm text-center">iv className="text-sm text-center">
-          <span>Already have an account? </span>      <span>Already have an account? </span>
-          <a href="/login" className="font-medium text-indigo-600 hover:text-indigo-500">        <a href="/login" className="font-medium text-indigo-600 hover:text-indigo-500">
-            Sign in here            Sign in here
+        <div className="text-sm text-center">
+          <span>Already have an account? </span>
+          <a href="/login" className="font-medium text-indigo-600 hover:text-indigo-500">
+            Sign in here
           </a>
-        </div>        </div>
-
-
-
-
-
-
-
-export default Register;};  );    </div>      </div>      </div>
+        </div>
+      </div>
     </div>
   );
 };
