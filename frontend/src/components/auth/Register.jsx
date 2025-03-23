@@ -1,5 +1,5 @@
 // src/components/auth/Register.jsx
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../pages/context/AuthContext';
 
@@ -15,247 +15,445 @@ const Register = () => {
     IdNumber: '',
     role: 'patient', // Default role
   });
+  
+  const [validations, setValidations] = useState({
+    firstName: { valid: false, message: '' },
+    lastName: { valid: false, message: '' },
+    email: { valid: false, message: '' },
+    password: { valid: false, message: '' },
+    confirmPassword: { valid: false, message: '' },
+    contactNumber: { valid: false, message: '' },
+    IdNumber: { valid: false, message: '' },
+  });
+  
+  const [passwordStrength, setPasswordStrength] = useState({
+    score: 0,
+    hasMinLength: false,
+    hasUppercase: false,
+    hasLowercase: false,
+    hasNumber: false,
+    hasSpecialChar: false,
+  });
+  
   const [isLoading, setIsLoading] = useState(false);
   const { register, error } = useAuth();
   const navigate = useNavigate();
 
-  const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value
+  // Validate fields when they change
+  useEffect(() => {
+    validateField('firstName', formData.firstName);
+    validateField('lastName', formData.lastName);
+    validateField('email', formData.email);
+    checkPasswordStrength(formData.password);
+    validateField('password', formData.password);
+    validateField('confirmPassword', formData.confirmPassword);
+    validateField('contactNumber', formData.contactNumber);
+    validateField('IdNumber', formData.IdNumber);
+  }, [formData]);
+
+  const validateField = (fieldName, value) => {
+    let isValid = false;
+    let message = '';
+
+    switch (fieldName) {
+      case 'firstName':
+        isValid = value.trim().length >= 2;
+        message = isValid ? '' : 'First name must be at least 2 characters';
+        break;
+        
+      case 'lastName':
+        isValid = value.trim().length >= 2;
+        message = isValid ? '' : 'Last name must be at least 2 characters';
+        break;
+        
+      case 'email':
+        const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+        isValid = emailRegex.test(value);
+        message = isValid ? '' : 'Please enter a valid email address';
+        break;
+        
+      case 'password':
+        isValid = passwordStrength.score >= 3;
+        message = isValid ? '' : 'Password is not strong enough';
+        break;
+        
+      case 'confirmPassword':
+        isValid = value === formData.password && value !== '';
+        message = isValid ? '' : 'Passwords do not match';
+        break;
+        
+      case 'contactNumber':
+        // Only allow exactly 10 digits
+        const phoneRegex = /^\d{10}$/;
+        isValid = phoneRegex.test(value);
+        message = isValid ? '' : 'Please enter exactly 10 digits for phone number';
+        break;
+        
+      case 'IdNumber':
+        // Only allow exactly 12 digits
+        const idRegex = /^\d{12}$/;
+        isValid = idRegex.test(value);
+        message = isValid ? '' : 'Please enter exactly 12 digits for ID number';
+        break;
+        
+      default:
+        break;
+    }
+
+    setValidations(prev => ({
+      ...prev,
+      [fieldName]: { valid: isValid, message }
+    }));
+
+    return isValid;
+  };
+
+  const checkPasswordStrength = (password) => {
+    const hasMinLength = password.length >= 8;
+    const hasUppercase = /[A-Z]/.test(password);
+    const hasLowercase = /[a-z]/.test(password);
+    const hasNumber = /\d/.test(password);
+    const hasSpecialChar = /[!@#$%^&*(),.?":{}|<>]/.test(password);
+    
+    // Calculate score (0-5) based on criteria met
+    let score = 0;
+    if (hasMinLength) score++;
+    if (hasUppercase) score++;
+    if (hasLowercase) score++;
+    if (hasNumber) score++;
+    if (hasSpecialChar) score++;
+    
+    setPasswordStrength({
+      score,
+      hasMinLength,
+      hasUppercase,
+      hasLowercase,
+      hasNumber,
+      hasSpecialChar
     });
   };
 
-  const nextStep = () => {
-    setStep(step + 1);
+  const getPasswordStrengthLabel = () => {
+    const { score } = passwordStrength;
+    if (score === 0) return { label: 'Very Weak', color: 'bg-red-500' };
+    if (score === 1) return { label: 'Weak', color: 'bg-red-400' };
+    if (score === 2) return { label: 'Fair', color: 'bg-yellow-500' };
+    if (score === 3) return { label: 'Good', color: 'bg-yellow-400' };
+    if (score === 4) return { label: 'Strong', color: 'bg-green-400' };
+    if (score === 5) return { label: 'Very Strong', color: 'bg-green-500' };
+    return { label: '', color: '' };
+  };
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    
+    // Special handling for numeric-only fields handling for numeric-only fields
+    if ((name === 'contactNumber' || name === 'IdNumber') && !/^\d*$/.test(value)) {contactNumber' || name === 'IdNumber') && !/^\d*$/.test(value)) {
+      // If non-digit characters are entered, don't update the state If non-digit characters are entered, don't update the state
+      return;  return;
+    }    }
+    
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  const nextStep = () => {nst nextStep = () => {
+    // Validate all fields in step 1 before proceeding
+    const isFirstNameValid = validateField('firstName', formData.firstName);id = validateField('firstName', formData.firstName);
+    const isLastNameValid = validateField('lastName', formData.lastName);onst isLastNameValid = validateField('lastName', formData.lastName);
+    const isEmailValid = validateField('email', formData.email);const isEmailValid = validateField('email', formData.email);
+    const isPasswordValid = validateField('password', formData.password);    const isPasswordValid = validateField('password', formData.password);
+    const isConfirmPasswordValid = validateField('confirmPassword', formData.confirmPassword);dValid = validateField('confirmPassword', formData.confirmPassword);
+    
+    if (isFirstNameValid && isLastNameValid && isEmailValid && isPasswordValid && isConfirmPasswordValid) {if (isFirstNameValid && isLastNameValid && isEmailValid && isPasswordValid && isConfirmPasswordValid) {
+      setStep(step + 1);      setStep(step + 1);
+    }
   };
 
   const prevStep = () => {
     setStep(step - 1);
   };
 
-  const validateStep1 = () => {
-    return (
-      formData.firstName && 
-      formData.lastName && 
-      formData.email && 
-      formData.password && 
-      formData.password === formData.confirmPassword
+  const validateStep1 = () => {t validateStep1 = () => {
+    return (return (
+      validations.firstName.valid &&       validations.firstName.valid && 
+      validations.lastName.valid && d && 
+      validations.email.valid && 
+      validations.password.valid &&   validations.password.valid && 
+      validations.confirmPassword.valid      validations.confirmPassword.valid
     );
   };
 
-  const validateStep2 = () => {
-    return formData.contactNumber && formData.IdNumber && formData.role;
+  const validateStep2 = () => { {
+    return validations.contactNumber.valid && validations.IdNumber.valid;alidations.IdNumber.valid;
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e) => {  const handleSubmit = async (e) => {
     e.preventDefault();
     
-    if (formData.password !== formData.confirmPassword) {
-      alert("Passwords don't match");
+    // Final validation check
+    if (!validateStep1() || !validateStep2()) {
       return;
     }
 
     setIsLoading(true);
     try {
-      // Remove confirmPassword before sending
-      const { confirmPassword, ...userData } = formData;
-      const user = await register(userData);
+      // Remove confirmPassword before sendingding
+      const { confirmPassword, ...userData } = formData;Data } = formData;
+      const user = await register(userData);;
       
       // Redirect based on user role
       if (user.role === 'admin') {
         navigate('/admin/dashboard');
       } else if (user.role === 'doctor') {
         navigate('/doctor/dashboard');
-      } else if (user.role === 'patient') {
-        navigate('/patient/dashboard');
-      } else if (user.role === 'pharmacy') {
-        navigate('/pharmacy/dashboard');
-      } else if (user.role === 'laboratory') {
+      } else if (user.role === 'patient') { {
+        navigate('/patient/dashboard');te('/patient/dashboard');
+      } else if (user.role === 'pharmacy') {'pharmacy') {
+        navigate('/pharmacy/dashboard'); navigate('/pharmacy/dashboard');
+      } else if (user.role === 'laboratory') {er.role === 'laboratory') {
         navigate('/laboratory/dashboard');
-      } else {
-        navigate('/dashboard');
-      }
+      } else if (user.role === 'dataentry') { (user.role === 'dataentry') {
+        navigate('/dataentry/dashboard');ry/dashboard');
+      } else { } else {
+        navigate('/dashboard');    navigate('/dashboard');
+      }      }
     } catch (err) {
       console.error('Registration error:', err);
     } finally {
-      setIsLoading(false);
+      setIsLoading(false);  setIsLoading(false);
     }
   };
 
+  // Modified renderField functionn
+  const renderField = (id, label, type, required = true) => {, type, required = true) => {
+    const validation = validations[id];
+    
+    // Extra props for specific fields
+    const extraProps = {};onst extraProps = {};
+    
+    if (id === 'contactNumber') {r') {
+      extraProps.maxLength = 10;
+      extraProps.pattern = '[0-9]*'; // Only allow digits
+      extraProps.inputMode = 'numeric'; // Show numeric keyboard on mobile
+      extraProps.placeholder = '0771234567';
+    }
+    
+    if (id === 'IdNumber') {== 'IdNumber') {
+      extraProps.maxLength = 12;Props.maxLength = 12;
+      extraProps.pattern = '[0-9]*'; // Only allow digits
+      extraProps.inputMode = 'numeric'; // Show numeric keyboard on mobileinputMode = 'numeric'; // Show numeric keyboard on mobile
+      extraProps.placeholder = '199912345678';.placeholder = '199912345678';
+    }
+    
+    return (
+      <div>
+        <label htmlFor={id} className="block text-sm font-medium text-gray-700">{id} className="block text-sm font-medium text-gray-700">
+          {label}
+        </label>
+        <div className="mt-1 relative">
+          <input
+            id={id}
+            name={id}
+            type={type}
+            required={required}required={required}
+            className={`block w-full px-3 py-2 border ${full px-3 py-2 border ${
+              validation.message ? 'border-red-300' : 'border-gray-300'
+            } rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm`}s:ring-indigo-500 focus:border-indigo-500 sm:text-sm`}
+            value={formData[id]}
+            onChange={handleChange}={handleChange}
+            {...extraProps}raProps}
+          />
+          {validation.valid && (idation.valid && (
+            <span className="absolute inset-y-0 right-0 pr-3 flex items-center text-green-500">olute inset-y-0 right-0 pr-3 flex items-center text-green-500">
+              <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">20">
+                <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+              </svg>  </svg>
+            </span>      </span>
+          )}      )}
+        </div>        </div>
+        {validation.message && (alidation.message && (
+          <p className="mt-1 text-sm text-red-600">{validation.message}</p>
+        )}
+      </div>
+    );
+  };
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-8">
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">reen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-md w-full space-y-8">ssName="max-w-md w-full space-y-8">
         <div>
-          <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
+          <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">          <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
             Create your account
           </h2>
-          <p className="mt-2 text-center text-sm text-gray-600">
+          <p className="mt-2 text-center text-sm text-gray-600">r text-sm text-gray-600">
             Step {step} of 2
           </p>
         </div>
 
-        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
+        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>Name="mt-8 space-y-6" onSubmit={handleSubmit}>
           {step === 1 && (
-            <div className="space-y-4">
-              <div>
-                <label htmlFor="firstName" className="block text-sm font-medium text-gray-700">First Name</label>
-                <input
-                  id="firstName"
-                  name="firstName"
-                  type="text"
-                  required
-                  className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                  value={formData.firstName}
-                  onChange={handleChange}
-                />
-              </div>
+            <div className="space-y-4">="space-y-4">
+              {renderField('firstName', 'First Name', 'text')}ld('firstName', 'First Name', 'text')}
+              {renderField('lastName', 'Last Name', 'text')}me', 'text')}
+              {renderField('email', 'Email address', 'email')}ld('email', 'Email address', 'email')}
               
               <div>
-                <label htmlFor="lastName" className="block text-sm font-medium text-gray-700">Last Name</label>
-                <input
-                  id="lastName"
-                  name="lastName"
-                  type="text"
-                  required
-                  className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                  value={formData.lastName}
-                  onChange={handleChange}
-                />
+                <label htmlFor="password" className="block text-sm font-medium text-gray-700">sword" className="block text-sm font-medium text-gray-700">
+                  Password
+                </label>
+                <div className="mt-1 relative">
+                  <input
+                    id="password"
+                    name="password"
+                    type="password"type="password"
+                    required
+                    className={`block w-full px-3 py-2 border ${
+                      validations.password.message ? 'border-red-300' : 'border-gray-300'0'
+                    } rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm`}
+                    value={formData.password}ormData.password}
+                    onChange={handleChange}e={handleChange}
+                  />
+                  {validations.password.valid && (idations.password.valid && (
+                    <span className="absolute inset-y-0 right-0 pr-3 flex items-center text-green-500">    <span className="absolute inset-y-0 right-0 pr-3 flex items-center text-green-500">
+                      <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                      </svg>
+                    </span>n>
+                  )}
+                </div>
+                
+                {/* Password strength meter */}word strength meter */}
+                <div className="mt-1">
+                  <div className="w-full bg-gray-200 rounded-full h-2.5">l h-2.5">
+                    <div iv 
+                      className={`h-2.5 rounded-full ${getPasswordStrengthLabel().color}`}     className={`h-2.5 rounded-full ${getPasswordStrengthLabel().color}`} 
+                      style={{ width: `${passwordStrength.score * 20}%` }}rdStrength.score * 20}%` }}
+                    ></div>
+                  </div>
+                  <p className="text-xs text-gray-600 mt-1">
+                    Strength: {getPasswordStrengthLabel().label}trengthLabel().label}
+                  </p>
+                  
+                  {/* Password requirements */}
+                  <ul className="mt-1 text-xs text-gray-600 space-y-1">gray-600 space-y-1">
+                    <li className={`flex items-center ${passwordStrength.hasMinLength ? 'text-green-500' : 'text-gray-500'}`}>lassName={`flex items-center ${passwordStrength.hasMinLength ? 'text-green-500' : 'text-gray-500'}`}>
+                      <span className="mr-1">{passwordStrength.hasMinLength ? '✓' : '○'}</span>
+                      At least 8 characters
+                    </li>
+                    <li className={`flex items-center ${passwordStrength.hasUppercase ? 'text-green-500' : 'text-gray-500'}`}>lassName={`flex items-center ${passwordStrength.hasUppercase ? 'text-green-500' : 'text-gray-500'}`}>
+                      <span className="mr-1">{passwordStrength.hasUppercase ? '✓' : '○'}</span>
+                      At least one uppercase letter
+                    </li>
+                    <li className={`flex items-center ${passwordStrength.hasLowercase ? 'text-green-500' : 'text-gray-500'}`}>lassName={`flex items-center ${passwordStrength.hasLowercase ? 'text-green-500' : 'text-gray-500'}`}>
+                      <span className="mr-1">{passwordStrength.hasLowercase ? '✓' : '○'}</span>
+                      At least one lowercase letter
+                    </li>
+                    <li className={`flex items-center ${passwordStrength.hasNumber ? 'text-green-500' : 'text-gray-500'}`}>lassName={`flex items-center ${passwordStrength.hasNumber ? 'text-green-500' : 'text-gray-500'}`}>
+                      <span className="mr-1">{passwordStrength.hasNumber ? '✓' : '○'}</span>span className="mr-1">{passwordStrength.hasNumber ? '✓' : '○'}</span>
+                      At least one numberAt least one number
+                    </li>    </li>
+                    <li className={`flex items-center ${passwordStrength.hasSpecialChar ? 'text-green-500' : 'text-gray-500'}`}>ter ${passwordStrength.hasSpecialChar ? 'text-green-500' : 'text-gray-500'}`}>
+                      <span className="mr-1">{passwordStrength.hasSpecialChar ? '✓' : '○'}</span>pan>
+                      At least one special character    At least one special character
+                    </li></li>
+                  </ul>    </ul>
+                </div>
+                                
+                {validations.password.message && ( (
+                  <p className="mt-1 text-sm text-red-600">{validations.password.message}</p>assName="mt-1 text-sm text-red-600">{validations.password.message}</p>
+                )}
               </div>
               
-              <div>
-                <label htmlFor="email" className="block text-sm font-medium text-gray-700">Email address</label>
-                <input
-                  id="email"
-                  name="email"
-                  type="email"
-                  autoComplete="email"
-                  required
-                  className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                  value={formData.email}
-                  onChange={handleChange}
-                />
-              </div>
-              
-              <div>
-                <label htmlFor="password" className="block text-sm font-medium text-gray-700">Password</label>
-                <input
-                  id="password"
-                  name="password"
-                  type="password"
-                  required
-                  className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                  value={formData.password}
-                  onChange={handleChange}
-                />
-              </div>
-              
-              <div>
-                <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700">Confirm Password</label>
-                <input
-                  id="confirmPassword"
-                  name="confirmPassword"
-                  type="password"
-                  required
-                  className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                  value={formData.confirmPassword}
-                  onChange={handleChange}
-                />
-              </div>
+              {renderField('confirmPassword', 'Confirm Password', 'password')}ord', 'password')}
 
               <div className="flex justify-end">
                 <button
                   type="button"
-                  className="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-                  onClick={nextStep}
-                  disabled={!validateStep1()}
+                  className={`inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white ${ className={`inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white ${
+                    validateStep1() lidateStep1() 
+                      ? 'bg-indigo-600 hover:bg-indigo-700' bg-indigo-600 hover:bg-indigo-700' 
+                      : 'bg-indigo-300 cursor-not-allowed'  : 'bg-indigo-300 cursor-not-allowed'
+                  } focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500`}} focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500`}
+                  onClick={nextStep}      onClick={nextStep}
+                  disabled={!validateStep1()}                  disabled={!validateStep1()}
                 >
                   Next
                 </button>
               </div>
-            </div>
+            </div>div>
           )}
 
-          {step === 2 && (
-            <div className="space-y-4">
-              <div>
-                <label htmlFor="contactNumber" className="block text-sm font-medium text-gray-700">Contact Number</label>
-                <input
-                  id="contactNumber"
-                  name="contactNumber"
-                  type="text"
-                  required
-                  className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                  value={formData.contactNumber}
-                  onChange={handleChange}
-                />
-              </div>
+          {step === 2 && (& (
+            <div className="space-y-4">"space-y-4">
+              {renderField('contactNumber', 'Contact Number', 'tel')}ontactNumber', 'Contact Number', 'tel')}
+              {renderField('IdNumber', 'ID Number', 'text')}
               
               <div>
-                <label htmlFor="IdNumber" className="block text-sm font-medium text-gray-700">ID Number</label>
-                <input
-                  id="IdNumber"
-                  name="IdNumber"
-                  type="text"
-                  required
-                  className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                  value={formData.IdNumber}
-                  onChange={handleChange}
-                />
-              </div>
-              
-              <div>
-                <label htmlFor="role" className="block text-sm font-medium text-gray-700">Role</label>
+                <label htmlFor="role" className="block text-sm font-medium text-gray-700">Role</label>label htmlFor="role" className="block text-sm font-medium text-gray-700">Role</label>
                 <select
                   id="role"
                   name="role"
-                  className="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                  className="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
                   value={formData.role}
                   onChange={handleChange}
                 >
-                  <option value="patient">Patient</option>
-                  <option value="doctor">Doctor</option>
-                  <option value="pharmacy">Pharmacy</option>
+                  <option value="patient">Patient</option>ption value="patient">Patient</option>
+                  <option value="doctor">Doctor</option>                  <option value="doctor">Doctor</option>
+                  <option value="pharmacy">Pharmacy</option> value="pharmacy">Pharmacy</option>
                   <option value="laboratory">Laboratory</option>
-                  <option value="admin">Admin</option>
-                </select>
-              </div>
+                  <option value="dataentry">Data Entry</option>"dataentry">Data Entry</option>
+                  <option value="admin">Admin</option>ion value="admin">Admin</option>
+                </select></select>
+              </div>              </div>
 
-              {error && (
-                <div className="text-red-600 text-sm">
-                  {error}
+              {error && ( (
+                <div className="p-2 bg-red-100 border-l-4 border-red-500 text-red-700">"p-2 bg-red-100 border-l-4 border-red-500 text-red-700">
+                  <p>{error}</p>
                 </div>
               )}
 
-              <div className="flex justify-between">
-                <button
-                  type="button"
-                  className="inline-flex justify-center py-2 px-4 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+              <div className="flex justify-between">ame="flex justify-between">
+                <button<button
+                  type="button""button"
+                  className="inline-flex justify-center py-2 px-4 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"line-flex justify-center py-2 px-4 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
                   onClick={prevStep}
                 >
                   Back
                 </button>
                 
                 <button
-                  type="submit"
+                  type="submit" type="submit"
                   disabled={isLoading || !validateStep2()}
-                  className="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-                >
-                  {isLoading ? 'Creating account...' : 'Create account'}
+                  className={`inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white ${me={`inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white ${
+                    validateStep2() && !isLoadingvalidateStep2() && !isLoading
+                      ? 'bg-indigo-600 hover:bg-indigo-700'     ? 'bg-indigo-600 hover:bg-indigo-700' 
+                      : 'bg-indigo-300 cursor-not-allowed'          : 'bg-indigo-300 cursor-not-allowed'
+                  } focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500`}   } focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500`}
+                >        >
+                  {isLoading ? 'Creating account...' : 'Create account'}unt...' : 'Create account'}
                 </button>
               </div>
             </div>
           )}
-        </form>
+        </form>>
         
-        <div className="text-sm text-center">
-          <span>Already have an account? </span>
-          <a href="/login" className="font-medium text-indigo-600 hover:text-indigo-500">
-            Sign in here
+        <div className="text-sm text-center">iv className="text-sm text-center">
+          <span>Already have an account? </span>      <span>Already have an account? </span>
+          <a href="/login" className="font-medium text-indigo-600 hover:text-indigo-500">        <a href="/login" className="font-medium text-indigo-600 hover:text-indigo-500">
+            Sign in here            Sign in here
           </a>
-        </div>
-      </div>
+        </div>        </div>
+
+
+
+
+
+
+
+export default Register;};  );    </div>      </div>      </div>
     </div>
   );
 };
