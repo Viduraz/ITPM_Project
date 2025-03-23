@@ -198,7 +198,7 @@ const Register = () => {
     return validations.contactNumber.valid && validations.IdNumber.valid;
   };
 
-  const handleSubmit = async (e) => {  const handleSubmit = async (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     
     // Final validation check
@@ -208,20 +208,20 @@ const Register = () => {
 
     setIsLoading(true);
     try {
-      // Remove confirmPassword before sendingding
-      const { confirmPassword, ...userData } = formData;Data } = formData;
-      const user = await register(userData);;
+      // Remove confirmPassword before sending
+      const { confirmPassword, ...userData } = formData;
+      const user = await register(userData);
       
       // Redirect based on user role
       if (user.role === 'admin') {
         navigate('/admin/dashboard');
       } else if (user.role === 'doctor') {
         navigate('/doctor/dashboard');
-      } else if (user.role === 'patient') { {
-        navigate('/patient/dashboard');te('/patient/dashboard');
-      } else if (user.role === 'pharmacy') {'pharmacy') {
-        navigate('/pharmacy/dashboard'); navigate('/pharmacy/dashboard');
-      } else if (user.role === 'laboratory') {er.role === 'laboratory') {
+      } else if (user.role === 'patient') {
+        navigate('/patient/dashboard');
+      } else if (user.role === 'pharmacy') {
+        navigate('/pharmacy/dashboard');
+      } else if (user.role === 'laboratory') {
         navigate('/laboratory/dashboard');
       } else if (user.role === 'dataentry') {
         navigate('/dataentry/dashboard');
@@ -231,7 +231,7 @@ const Register = () => {
     } catch (err) {
       console.error('Registration error:', err);
     } finally {
-      setIsLoading(false);  setIsLoading(false);
+      setIsLoading(false);
     }
   };
 
