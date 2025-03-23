@@ -1,10 +1,15 @@
 // src/components/layout/Sidebar.jsx
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 
 const Sidebar = ({ userRole }) => {
   const location = useLocation();
   const [isMobileOpen, setIsMobileOpen] = useState(false);
+  
+  // Close mobile sidebar when route changes
+  useEffect(() => {
+    setIsMobileOpen(false);
+  }, [location.pathname]);
 
   // Define navigation items based on user role
   const navigationItems = {
@@ -31,6 +36,11 @@ const Sidebar = ({ userRole }) => {
       { name: 'Dashboard', path: '/admin/dashboard', icon: 'home' },
       { name: 'User Management', path: '/admin/users', icon: 'users' },
       { name: 'Statistics', path: '/admin/stats', icon: 'chart' },
+    ],
+    dataentry: [
+      { name: 'Dashboard', path: '/dataentry/dashboard', icon: 'home' },
+      { name: 'Patient Diagnosis', path: '/dataentry/patientdiagnosis', icon: 'document' },
+      { name: 'Prescriptions', path: '/dataentry/patientprescriptions', icon: 'clipboard' },
     ],
   };
 
@@ -89,47 +99,67 @@ const Sidebar = ({ userRole }) => {
 
   return (
     <>
-      {/* Mobile sidebar toggle */}
-      <div className="md:hidden">
+      {/* Mobile sidebar toggle - only shown on mobile */}
+      <div className="md:hidden z-20 fixed top-4 left-4">
         <button 
           onClick={() => setIsMobileOpen(!isMobileOpen)} 
-          className="p-2 text-gray-600 rounded-md hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+          className="p-2 bg-white text-gray-600 rounded-md shadow-md hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+          aria-label="Toggle navigation menu"
         >
           <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16" />
+            {isMobileOpen ? (
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+            ) : (
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16" />
+            )}
           </svg>
         </button>
       </div>
 
-      {/* Desktop sidebar */}
-      <div className={`bg-white shadow-lg w-64 fixed inset-y-0 left-0 transform ${isMobileOpen ? 'translate-x-0' : '-translate-x-full'} md:translate-x-0 transition-transform duration-300 ease-in-out z-30 pt-16`}>
-        <div className="h-full overflow-y-auto">
-          <div className="px-2 py-4">
-            <div className="mb-8">
-              <h2 className="text-xl font-semibold text-gray-700 px-4">{userRole ? userRole.charAt(0).toUpperCase() + userRole.slice(1) : ''} Menu</h2>
-            </div>
-            <nav className="space-y-1">
-              {items.map((item) => {
-                const isActive = location.pathname === item.path;
-                return (
-                  <Link
-                    key={item.name}
-                    to={item.path}
-                    className={`group flex items-center px-4 py-2 text-base font-medium rounded-md ${
-                      isActive
-                        ? 'bg-indigo-100 text-indigo-700'
-                        : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900'
-                    }`}
-                  >
-                    <div className={`mr-3 ${isActive ? 'text-indigo-700' : 'text-gray-500 group-hover:text-gray-600'}`}>
-                      {renderIcon(item.icon)}
-                    </div>
-                    {item.name}
-                  </Link>
-                );
-              })}
-            </nav>
+      {/* Backdrop for mobile - only appears when sidebar is open on mobile */}
+      {isMobileOpen && (
+        <div 
+          className="fixed inset-0 bg-gray-600 bg-opacity-50 z-20 md:hidden"
+          onClick={() => setIsMobileOpen(false)}
+        ></div>
+      )}
+
+      {/* Sidebar component - desktop always showing, mobile conditional */}
+      <div 
+        className={`bg-white shadow-lg md:w-64 w-3/4 fixed h-full overflow-y-auto 
+                    md:sticky top-0 left-0 transform transition-transform duration-300 ease-in-out 
+                    ${isMobileOpen ? 'translate-x-0' : '-translate-x-full'} 
+                    md:translate-x-0 z-30 md:z-10`}
+        style={{ height: 'calc(100vh - 64px)' }} // Adjust based on your navbar height
+      >
+        <div className="h-full py-4">
+          <div className="px-4 mb-6">
+            <h2 className="text-xl font-semibold text-gray-700 capitalize">
+              {userRole ? userRole.charAt(0).toUpperCase() + userRole.slice(1) : ''} Menu
+            </h2>
           </div>
+          
+          <nav className="space-y-1 px-2">
+            {items.map((item) => {
+              const isActive = location.pathname === item.path;
+              return (
+                <Link
+                  key={item.name}
+                  to={item.path}
+                  className={`group flex items-center px-4 py-2 text-base font-medium rounded-md ${
+                    isActive
+                      ? 'bg-indigo-100 text-indigo-700'
+                      : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900'
+                  }`}
+                >
+                  <div className={`mr-3 ${isActive ? 'text-indigo-700' : 'text-gray-500 group-hover:text-gray-600'}`}>
+                    {renderIcon(item.icon)}
+                  </div>
+                  {item.name}
+                </Link>
+              );
+            })}
+          </nav>
         </div>
       </div>
     </>
