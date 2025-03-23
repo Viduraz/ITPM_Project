@@ -12,6 +12,7 @@ const DoctorDashboard = () => {
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [selectedTime, setSelectedTime] = useState('');
   const [calendarDate, setCalendarDate] = useState(new Date());
+  const [errorMessage, setErrorMessage] = useState('');
 
   const hospitals = [
     {
@@ -69,6 +70,31 @@ const DoctorDashboard = () => {
         [selectedHospital.id]: !prev[selectedHospital.id]
       }));
     }
+  };
+
+  const validateDateTime = () => {
+    const currentDateTime = new Date();
+    const selectedDateTime = new Date(selectedDate);
+    
+    // Set the time from the time input
+    const [hours, minutes] = selectedTime.split(':');
+    selectedDateTime.setHours(parseInt(hours), parseInt(minutes));
+  
+    if (selectedDateTime < currentDateTime) {
+      setErrorMessage('Please select a future date and time for availability.');
+      return false;
+    }
+    
+    setErrorMessage('');
+    return true;
+  };
+  
+  const handleUpdateAvailability = () => {
+    if (!validateDateTime()) {
+      return;
+    }
+    // Your existing update logic here
+    console.log('Availability updated successfully');
   };
 
   const notifications = [
@@ -174,6 +200,7 @@ const DoctorDashboard = () => {
                       <DatePicker
                         selected={selectedDate}
                         onChange={setSelectedDate}
+                        minDate={new Date()} // This will disable all past dates
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                         dateFormat="MMMM d, yyyy"
                       />
@@ -193,7 +220,16 @@ const DoctorDashboard = () => {
                     </div>
                   </div>
 
-                  <button className="w-full bg-indigo-600 text-white py-3 px-4 rounded-lg hover:bg-indigo-700 transition-all hover:shadow-lg hover:-translate-y-1">
+                  {errorMessage && (
+                    <div className="text-red-500 text-sm bg-red-50 p-3 rounded-lg border border-red-200">
+                      ⚠️ {errorMessage}
+                    </div>
+                  )}
+
+                  <button 
+                    onClick={handleUpdateAvailability}
+                    className="w-full bg-indigo-600 text-white py-3 px-4 rounded-lg hover:bg-indigo-700 transition-all hover:shadow-lg hover:-translate-y-1"
+                  >
                     Update Availability
                   </button>
                 </div>

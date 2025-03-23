@@ -1,5 +1,5 @@
 // src/pages/patient/DoctorSearch.jsx
-import React from 'react';
+import React, { useState } from 'react';
 import { Link, useParams, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 
@@ -236,6 +236,9 @@ const DoctorSearch = () => {
   const { specialty } = useParams();
   const navigate = useNavigate();
 
+  // Add this near other state declarations
+  const [searchQuery, setSearchQuery] = useState('');
+
   // 4. Get doctors for the selected specialty
   const doctors = specialty && doctorsData[specialty] ? doctorsData[specialty] : [];
 
@@ -268,6 +271,27 @@ const DoctorSearch = () => {
     navigate('/doctor-availability', { state: { doctor } });
   };
 
+  // Add this function before the return statement
+  const filteredDoctors = () => {
+    let results = specialty ? doctors : featuredDoctors;
+    if (searchQuery) {
+      const query = searchQuery.toLowerCase();
+      return results.filter(doc => 
+        doc.name.toLowerCase().includes(query) ||
+        (doc.specialty && doc.specialty.toLowerCase().includes(query)) ||
+        doc.title.toLowerCase().includes(query) ||
+        // Also search in specialization field if it exists
+        (doc.specialization && doc.specialization.toLowerCase().includes(query)) ||
+        // Search in the doctor's full specialty name from specialties array
+        specialties.some(spec => 
+          spec.name.toLowerCase().includes(query) && 
+          (doc.specialty === spec.id || doc.specialty === spec.name)
+        )
+      );
+    }
+    return results;
+  };
+
   return (
     <motion.div 
       initial={{ opacity: 0 }}
@@ -275,13 +299,42 @@ const DoctorSearch = () => {
       className="min-h-screen bg-gray-50"
     >
       <header className="bg-purple-200 shadow p-4">
-        <motion.h1 
-          initial={{ y: -20 }}
-          animate={{ y: 0 }}
-          className="text-3xl font-bold text-gray-800"
-        >
-          Our Healthcare Professionals
-        </motion.h1>
+        <div className="max-w-7xl mx-auto">
+          <motion.h1 
+            initial={{ y: -20 }}
+            animate={{ y: 0 }}
+            className="text-3xl font-bold text-gray-800 mb-4"
+          >
+            Our Healthcare Professionals
+          </motion.h1>
+          
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="relative max-w-2xl"
+          >
+            <input
+              type="text"
+              placeholder="Search by doctor name or specialty (e.g. Dr. Smith, Cardiology)"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full px-4 py-3 pl-12 pr-4 text-gray-700 bg-white border rounded-lg focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 shadow-sm"
+            />
+            <svg
+              className="absolute left-4 top-3.5 h-5 w-5 text-gray-400"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+              />
+            </svg>
+          </motion.div>
+        </div>
       </header>
 
       <div className="max-w-7xl mx-auto p-4 mt-6 flex">
@@ -324,14 +377,14 @@ const DoctorSearch = () => {
           </p>
 
           {/* Show doctors if a specialty is selected */}
-          {specialty && doctors.length > 0 ? (
+          {specialty && filteredDoctors().length > 0 ? (
             <motion.div 
               variants={containerVariants}
               initial="hidden"
               animate="visible"
               className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6"
             >
-              {doctors.map((doc) => (
+              {filteredDoctors().map((doc) => (
                 <motion.div
                   key={doc.id}
                   variants={cardVariants}
@@ -375,14 +428,13 @@ const DoctorSearch = () => {
                 </motion.div>
               ))}
             </motion.div>
-          ) : specialty ? (
-            // If user selected a specialty but there's no data
+          ) : specialty || searchQuery ? (
             <motion.p
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               className="text-gray-500"
             >
-              No doctors found for this specialty.
+              No doctors found matching your search criteria.
             </motion.p>
           ) : (
             // New featured doctors section
@@ -402,7 +454,7 @@ const DoctorSearch = () => {
                 variants={containerVariants}
                 className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6"
               >
-                {featuredDoctors.map((doc) => (
+                {filteredDoctors().map((doc) => (
                   <motion.div
                     key={doc.id}
                     variants={cardVariants}
