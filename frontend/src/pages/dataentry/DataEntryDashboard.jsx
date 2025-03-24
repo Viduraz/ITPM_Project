@@ -30,7 +30,7 @@ const DataEntryDashboard = () => {
         </header>
 
         {/* Dashboard Body */}
-        <div className="bg-white border border-blue-400 p-6 rounded-lg shadow-md relative mb-6">
+        <div className="bg-white border border-blue-400 p-6 rounded-lg shadow-md relative mb-6 h-105">
           <h2 className="text-xl font-bold text-gray-800 mb-4">
             Dashboard Overview
           </h2>
@@ -60,7 +60,7 @@ const DataEntryDashboard = () => {
 
           {/* Fix the image path - use relative path */}
           <img
-            src="/src/assets/dataentry.png"
+            src="/public/dataentry/dataentry.png"
             alt="Data Entry"
             className="absolute bottom-1 right-10 w-60 h-60 object-cover rounded-lg"
           />
