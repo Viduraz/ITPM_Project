@@ -1,12 +1,12 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
+// Define the validation schema
 const schema = yup.object().shape({
-  patient: yup.string().required("Patient ID is required"),
   doctor: yup.string().required("Doctor ID is required"),
   hospital: yup.string().optional(),
   diagnosisDetails: yup.string().required("Diagnosis details are required"),
@@ -17,19 +17,79 @@ const schema = yup.object().shape({
 });
 
 const PatientDiagnosis = () => {
+  const [patientList, setPatientList] = useState([]);
+  const [selectedPatientId, setSelectedPatientId] = useState("");
+  const [patientNameSearch, setPatientNameSearch] = useState("");
+
   const {
     register,
     handleSubmit,
     formState: { errors },
-    reset, // Destructure reset from useForm
+    reset,
   } = useForm({
     resolver: yupResolver(schema),
   });
 
-  const onSubmit = (data) => {
-    console.log("Diagnosis Data:", data);
-    toast.success("Diagnosis submitted successfully!");
-    reset(); // Reset the form fields
+  // Function to fetch patients based on the search query
+  const fetchPatients = async (searchQuery) => {
+    try {
+      const response = await fetch(`/api/patients?searchQuery=${searchQuery}`);
+      const data = await response.json();
+
+      if (data.patients) {
+        setPatientList(data.patients);
+      }
+    } catch (error) {
+      toast.error("Failed to fetch patient data.");
+    }
+  };
+
+  // Trigger API call when patient name changes
+  useEffect(() => {
+    if (patientNameSearch.length > 2) {
+      fetchPatients(patientNameSearch);
+    } else {
+      setPatientList([]);
+    }
+  }, [patientNameSearch]);
+
+  // Handle form submission
+  const onSubmit = async (data) => {
+    try {
+      const diagnosisData = {
+        patientId: selectedPatientId,
+        doctorId: data.doctor,
+        diagnosisDetails: data.diagnosisDetails,
+        condition: data.condition,
+        symptoms: data.symptoms,
+        notes: data.notes,
+        followUpDate: data.followUpDate,
+      };
+
+      const response = await fetch('/api/create-diagnosis', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(diagnosisData),
+      });
+
+      if (response.ok) {
+        toast.success("Diagnosis submitted successfully!");
+        reset();  // Reset the form after successful submission
+      } else {
+        toast.error("Failed to submit diagnosis.");
+      }
+    } catch (error) {
+      toast.error("An error occurred while submitting the diagnosis.");
+    }
+  };
+
+  // Handle patient selection
+  const handlePatientSelect = (patientId) => {
+    setSelectedPatientId(patientId);
+    setPatientNameSearch(""); // Reset the search field
+    setPatientList([]); // Clear the dropdown list
   };
 
   return (
@@ -38,16 +98,41 @@ const PatientDiagnosis = () => {
       <h2 className="text-center text-2xl font-semibold mb-6">Patient Diagnosis Form</h2>
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
         <div>
+          <label className="block font-medium text-gray-700">Patient Name</label>
+          <input
+            type="text"
+            value={patientNameSearch}
+            onChange={(e) => setPatientNameSearch(e.target.value)}
+            className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            placeholder="Enter Patient Name"
+          />
+          {patientList.length > 0 && (
+            <ul className="mt-2 border border-gray-300 max-h-48 overflow-y-auto">
+              {patientList.map((patient) => (
+                <li
+                  key={patient._id}
+                  className="px-3 py-2 cursor-pointer hover:bg-gray-200"
+                  onClick={() => handlePatientSelect(patient._id)}
+                >
+                  {patient.userId.firstName} {patient.userId.lastName}
+                </li>
+              ))}
+            </ul>
+          )}
+          <p className="text-red-500 text-sm mt-1">{errors.patient?.message}</p>
+        </div>
+
+        <div>
           <label className="block font-medium text-gray-700">Patient ID</label>
           <input
             type="text"
-            {...register("patient")}
+            value={selectedPatientId} // This is the _id of the selected patient
+            readOnly
             className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            placeholder="Enter Patient ID"
+            placeholder="Patient ID"
           />
-          <p className="text-red-500 text-sm mt-1">{errors.patient?.message}</p>
         </div>
-        
+
         <div>
           <label className="block font-medium text-gray-700">Doctor ID</label>
           <input
