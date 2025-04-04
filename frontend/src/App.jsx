@@ -14,7 +14,7 @@ import Register from './components/auth/Register';
 import Home from './pages/Home';
 
 // Dashboard Pages
-import PatientDashboard from './pages/patient/PatientDashboard';
+import PatientDashboard from './pages/Patient/PatientDashboard';
 import MedicalHistory from './pages/patient/MedicalHistory';
 import DoctorSearch from './pages/patient/DoctorSearch';
 
