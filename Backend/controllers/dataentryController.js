@@ -6,6 +6,8 @@ import Patient from '../models/Patient.js';
 import Doctor from '../models/Doctor.js';
 import Hospital from '../models/Hospital.js';
 
+
+
 // Create data entry profile
 export const createDataEntryProfile = async (req, res) => {
   try {
@@ -67,26 +69,19 @@ export const getDataEntryProfile = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
-
-// Create diagnosis data entry
-export const createDiagnosisDataEntry = async (req, res) => {
+// Create new diagnosis
+export const createDiagnosis = async (req, res) => {
   try {
-    const { patientId, doctorId, hospitalId, symptoms, diagnosisDetails, condition, notes, followUpDate } = req.body;
+    const { patientId, hospitalId, symptoms, diagnosisDetails, condition, notes, followUpDate } = req.body;
     
-    // Find the patient
-    const patient = await Patient.findOne({ userId: patientId });
-    if (!patient) {
-      return res.status(404).json({ message: 'Patient not found' });
-    }
+    const doctor = await Doctor.findOne({ userId: req.user._id });
     
-    // Find the doctor
-    const doctor = await Doctor.findOne({ userId: doctorId });
     if (!doctor) {
-      return res.status(404).json({ message: 'Doctor not found' });
+      return res.status(404).json({ message: 'Doctor profile not found' });
     }
-    
+
     const diagnosis = new Diagnosis({
-      patient: patient._id,
+      patient: patientId,
       doctor: doctor._id,
       hospital: hospitalId,
       diagnosisDate: new Date(),
@@ -98,19 +93,6 @@ export const createDiagnosisDataEntry = async (req, res) => {
     });
 
     await diagnosis.save();
-
-    // Record this task for the data entry operator
-    const dataEntry = await DataEntry.findOne({ userId: req.user._id });
-    if (dataEntry) {
-      dataEntry.assignedTasks.push({
-        taskType: 'Diagnosis Entry',
-        assignedBy: req.user._id,
-        assignedAt: new Date(),
-        completedAt: new Date(),
-        status: 'Completed'
-      });
-      await dataEntry.save();
-    }
 
     res.status(201).json({
       message: 'Diagnosis created successfully',
@@ -186,5 +168,125 @@ export const getAssignedTasks = async (req, res) => {
     res.status(200).json({ tasks: dataEntry.assignedTasks });
   } catch (error) {
     res.status(500).json({ message: error.message });
+  }
+};
+
+// getAllDiagnoses Controller
+export const getAllDiagnoses = async (req, res) => {
+  try {
+    const diagnoses = await Diagnosis.find()
+      .populate('patientId', 'name') // Example of populating patient name
+      .populate('doctorId', 'name') // Example of populating doctor name
+      .populate('hospitalId', 'name'); // Example of populating hospital name if hospital is available
+
+    res.status(200).json({ diagnoses });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+// Controller to get all patients
+export const getAllPatients = async (req, res) => {
+  try {
+    const patients = await Patient.find().select('patientId name'); // Get all patients with their ID and name
+    res.status(200).json({ patients });
+  } catch (error) {
+    console.error('Error fetching patients:', error);
+    res.status(500).json({ message: 'Error fetching patients' });
+  }
+};
+
+// Get all hospitals
+export const getAllHospitals = async (req, res) => {
+  try {
+    const hospitals = await Hospital.find();
+    res.status(200).json({ hospitals });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// Get patient medical history
+export const getPatientMedicalHistory = async (req, res) => {
+  try {
+    const { patientId } = req.params;
+    
+    const patient = await Patient.findById(patientId)
+      .populate('userId', 'firstName lastName email contactNumber');
+    
+    if (!patient) {
+      return res.status(404).json({ message: 'Patient not found' });
+    }
+
+    // Get diagnoses
+    const diagnoses = await Diagnosis.find({ patient: patientId })
+      .populate('doctor', 'userId')
+      .populate('hospital', 'name')
+      .sort({ diagnosisDate: -1 });
+    
+    // Get prescriptions
+    const prescriptions = await Prescription.find({ patient: patientId })
+      .populate('doctor', 'userId')
+      .populate('hospital', 'name')
+      .populate('diagnosis')
+      .sort({ date: -1 });
+    
+    // Get lab reports
+    const labReports = await LabReport.find({ patient: patientId })
+      .populate('doctor', 'userId')
+      .populate('laboratory', 'name')
+      .sort({ testDate: -1 });
+    
+    res.status(200).json({
+      patient,
+      medicalHistory: {
+        diagnoses,
+        prescriptions,
+        labReports
+      }
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// Controller function to get patients based on a search query
+export const getPatientsBySearch = async (req, res) => {
+  try {
+    const searchQuery = req.query.query || ''; // Search query (patient ID or name)
+    
+    // Find patients whose ID or name matches the search query (case-insensitive)
+    const patients = await Patient.find({
+      $or: [
+        { patientId: { $regex: searchQuery, $options: 'i' } }, // Match patientId
+        { name: { $regex: searchQuery, $options: 'i' } } // Match name (optional)
+      ]
+    }).select('patientId name'); // Only return patientId and name (adjust based on your schema)
+    
+    res.json({ patients });
+  } catch (error) {
+    console.error('Error fetching patients:', error);
+    res.status(500).json({ message: 'Error fetching patients' });
+  }
+};
+
+export const handlePatientSearch = async (e) => {
+  const searchQuery = e.target.value;
+  setFormData({ ...formData, patientId: searchQuery });
+
+  if (searchQuery.length > 2) { // Fetch patients only after 3 characters
+    try {
+      const response = await axios.get('http://localhost:3000/api/patients', {
+        params: { query: searchQuery } // Pass the query as a query parameter
+      });
+
+      if (response.data.patients) {
+        setPatientSuggestions(response.data.patients); // Update the suggestions list
+      }
+    } catch (error) {
+      console.error('Error fetching patients:', error);
+      setPatientSuggestions([]); // Reset suggestions on error
+    }
+  } else {
+    setPatientSuggestions([]); // Clear suggestions if input is too short
   }
 };
