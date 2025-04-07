@@ -3,6 +3,16 @@ import axios from 'axios';
 
 const TESTING_MODE = true; // Set to false when backend is ready
 
+/*************  ✨ Windsurf Command ⭐  *************/
+/**
+ * Component for creating a diagnosis.
+ *
+ * Handles form submission and API call to create a new diagnosis.
+ * Also handles form validation and error messages.
+ *
+ * @return {JSX.Element} Component JSX
+ */
+/*******  252fb353-f758-4b90-be7c-1fd84c961878  *******/
 const PatientDiagnosis = () => {
   const [formData, setFormData] = useState({
     patientId: '',
@@ -114,7 +124,7 @@ const PatientDiagnosis = () => {
 
       // Make the API call
       const response = await axios.post(
-        'http://localhost:3000/api/diagnosis', // Try this first
+        'http://localhost:3000/api/diagnosis', // Update this if needed
         formData,
         config
       );

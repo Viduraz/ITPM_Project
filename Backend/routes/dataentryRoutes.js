@@ -3,7 +3,6 @@ import {
   createDataEntryProfile,
   getDataEntryProfile,
   createDiagnosis,
-  getAllDiagnoses, // Controller function to fetch all diagnoses
   createPrescriptionDataEntry,
   getAssignedTasks,
   getAllPatients
@@ -25,9 +24,6 @@ router.get('/profile', getDataEntryProfile);
 
 // Route to create a new diagnosis
 router.post('/diagnosis', createDiagnosis);
-
-// Route to fetch all diagnoses
-router.get('/diagnoses', getAllDiagnoses); // Added route to fetch all diagnoses
 
 // Route to create prescription data entry
 router.post('/create-prescription', createPrescriptionDataEntry);
