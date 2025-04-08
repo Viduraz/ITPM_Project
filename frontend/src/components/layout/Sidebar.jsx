@@ -5,18 +5,14 @@ import { Link, useLocation } from 'react-router-dom';
 const Sidebar = ({ userRole }) => {
   const location = useLocation();
   const [isMobileOpen, setIsMobileOpen] = useState(false);
-  
-  // Close mobile sidebar when route changes
-  useEffect(() => {
-    setIsMobileOpen(false);
-  }, [location.pathname]);
+  const [isCollapsed, setIsCollapsed] = useState(false);
 
   // Define navigation items based on user role
   const navigationItems = {
     patient: [
       { name: 'Dashboard', path: '/patient/dashboard', icon: 'home' },
       { name: 'Medical History', path: '/patient/medical-history', icon: 'document' },
-      { name: 'Find Doctors', path: '/patient/find-doctors', icon: 'search' },
+      { name: 'Find Doctors', path: '/doctor-search', icon: 'search' }, // Update this line
     ],
     doctor: [
       { name: 'Dashboard', path: '/doctor/dashboard', icon: 'home' },
@@ -116,51 +112,67 @@ const Sidebar = ({ userRole }) => {
         </button>
       </div>
 
-      {/* Backdrop for mobile - only appears when sidebar is open on mobile */}
-      {isMobileOpen && (
-        <div 
-          className="fixed inset-0 bg-gray-600 bg-opacity-50 z-20 md:hidden"
-          onClick={() => setIsMobileOpen(false)}
-        ></div>
-      )}
+      {/* Desktop sidebar */}
+      <div className={`bg-white shadow-lg fixed inset-y-0 left-0 transform ${
+        isMobileOpen ? 'translate-x-0' : '-translate-x-full'
+      } md:translate-x-0 transition-transform duration-300 ease-in-out z-30 pt-16 ${
+        isCollapsed ? 'w-16' : 'w-64'
+      }`}>
+        {/* Collapse toggle button */}
+        <button
+          onClick={() => setIsCollapsed(!isCollapsed)}
+          className="absolute right-0 top-20 transform translate-x-6 bg-white rounded-full p-2 shadow-md hover:bg-gray-50 focus:outline-none"
+        >
+          <svg 
+            className={`w-4 h-4 text-gray-600 transform ${isCollapsed ? 'rotate-180' : ''}`}
+            fill="none" 
+            stroke="currentColor" 
+            viewBox="0 0 24 24"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7" />
+          </svg>
+        </button>
 
-      {/* Sidebar component - desktop always showing, mobile conditional */}
-      <div 
-        className={`bg-white shadow-lg md:w-64 w-3/4 fixed h-full overflow-y-auto 
-                    md:sticky top-0 left-0 transform transition-transform duration-300 ease-in-out 
-                    ${isMobileOpen ? 'translate-x-0' : '-translate-x-full'} 
-                    md:translate-x-0 z-30 md:z-10`}
-        style={{ height: 'calc(100vh - 64px)' }} // Adjust based on your navbar height
-      >
-        <div className="h-full py-4">
-          <div className="px-4 mb-6">
-            <h2 className="text-xl font-semibold text-gray-700 capitalize">
-              {userRole ? userRole.charAt(0).toUpperCase() + userRole.slice(1) : ''} Menu
-            </h2>
+        <div className="h-full overflow-y-auto">
+          <div className="px-2 py-4">
+            {!isCollapsed && (
+              <div className="mb-8">
+                <h2 className="text-xl font-semibold text-gray-700 px-4">
+                  {userRole ? userRole.charAt(0).toUpperCase() + userRole.slice(1) : ''} Menu
+                </h2>
+              </div>
+            )}
+            <nav className="space-y-1">
+              {items.map((item) => {
+                const isActive = location.pathname === item.path;
+                return (
+                  <Link
+                    key={item.name}
+                    to={item.path}
+                    className={`group flex items-center px-4 py-2 text-base font-medium rounded-md ${
+                      isActive
+                        ? 'bg-indigo-100 text-indigo-700'
+                        : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900'
+                    }`}
+                    title={isCollapsed ? item.name : ''}
+                  >
+                    <div className={`${isCollapsed ? 'mx-auto' : 'mr-3'} ${
+                      isActive ? 'text-indigo-700' : 'text-gray-500 group-hover:text-gray-600'
+                    }`}>
+                      {renderIcon(item.icon)}
+                    </div>
+                    {!isCollapsed && item.name}
+                  </Link>
+                );
+              })}
+            </nav>
           </div>
-          
-          <nav className="space-y-1 px-2">
-            {items.map((item) => {
-              const isActive = location.pathname === item.path;
-              return (
-                <Link
-                  key={item.name}
-                  to={item.path}
-                  className={`group flex items-center px-4 py-2 text-base font-medium rounded-md ${
-                    isActive
-                      ? 'bg-indigo-100 text-indigo-700'
-                      : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900'
-                  }`}
-                >
-                  <div className={`mr-3 ${isActive ? 'text-indigo-700' : 'text-gray-500 group-hover:text-gray-600'}`}>
-                    {renderIcon(item.icon)}
-                  </div>
-                  {item.name}
-                </Link>
-              );
-            })}
-          </nav>
         </div>
+      </div>
+
+      {/* Main content margin compensation */}
+      <div className={`${isCollapsed ? '-ml-[89vw]' : '-ml-[65vw]'} transition-all duration-300 flex-1`}>
+        {/* Your main content goes here */}
       </div>
     </>
   );

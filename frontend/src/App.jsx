@@ -19,9 +19,12 @@ import MedicalHistory from './pages/patient/MedicalHistory';
 import DoctorSearch from './pages/patient/DoctorSearch';
 
 import DoctorDashboard from './pages/doctor/DoctorDashboard';
+import DoctorProfile from './pages/doctor/DoctorProfile';
+import DoctorAvailability from './pages/Patient/DoctorAvailability';
 import PatientManagement from './pages/doctor/PatientManagement';
 import DiagnosisForm from './pages/doctor/DiagnosisForm';
 import PrescriptionForm from './pages/doctor/PrescriptionForm';
+import ReportGeneration from './pages/doctor/ReportGeneration';
 
 import PharmacyDashboard from './pages/pharmacy/PharmacyDashboard';
 import PrescriptionVerification from './pages/pharmacy/PrescriptionVerification';
@@ -134,12 +137,27 @@ function App() {
               </DashboardLayout>
             </ProtectedRoute>
           } />
+          <Route path="/doctor-search/:specialty?" element={
+            <ProtectedRoute allowedRoles={['patient', 'admin']}>
+              <DashboardLayout>
+                <DoctorSearch />
+              </DashboardLayout>
+            </ProtectedRoute>
+          } />
           
           {/* Doctor Routes */}
           <Route path="/doctor/dashboard" element={
             <ProtectedRoute allowedRoles={['doctor', 'admin']}>
               <DashboardLayout>
                 <DoctorDashboard />
+              </DashboardLayout>
+            </ProtectedRoute>
+          } />
+
+          <Route path="/doctor/profile" element={
+            <ProtectedRoute allowedRoles={['doctor', 'admin']}>
+              <DashboardLayout>
+                <DoctorProfile />
               </DashboardLayout>
             </ProtectedRoute>
           } />
@@ -162,6 +180,18 @@ function App() {
               <DashboardLayout>
                 <PrescriptionForm />
               </DashboardLayout>
+            </ProtectedRoute>
+          } />
+          <Route path="/doctor-availability" element={
+            <ProtectedRoute allowedRoles={['patient', 'admin']}>
+              <DashboardLayout>
+                <DoctorAvailability />
+              </DashboardLayout>
+            </ProtectedRoute>
+          } />
+          <Route path="/doctor/report-generation" element={
+            <ProtectedRoute allowedRoles={['doctor']}>
+              <ReportGeneration />
             </ProtectedRoute>
           } />
           
