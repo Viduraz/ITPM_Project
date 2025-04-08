@@ -19,6 +19,8 @@ import MedicalHistory from './pages/patient/MedicalHistory';
 import DoctorSearch from './pages/patient/DoctorSearch';
 
 import DoctorDashboard from './pages/doctor/DoctorDashboard';
+import DoctorProfile from './pages/doctor/DoctorProfile';
+import DoctorAvailability from './pages/Patient/DoctorAvailability';
 import PatientManagement from './pages/doctor/PatientManagement';
 import DiagnosisForm from './pages/doctor/DiagnosisForm';
 import PrescriptionForm from './pages/doctor/PrescriptionForm';
