@@ -2,6 +2,12 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../pages/context/AuthContext';
+import { motion, AnimatePresence } from 'framer-motion';
+import { 
+  FaUser, FaEnvelope, FaLock, FaPhone, FaIdCard, 
+  FaUserMd, FaHospital, FaArrowRight, FaArrowLeft, 
+  FaUserPlus, FaHeartbeat, FaUserCheck
+} from 'react-icons/fa';
 
 const Register = () => {
   const [step, setStep] = useState(1);
@@ -36,6 +42,8 @@ const Register = () => {
   });
   
   const [isLoading, setIsLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const { register, error } = useAuth();
   const navigate = useNavigate();
 
