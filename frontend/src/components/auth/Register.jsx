@@ -21,26 +21,6 @@ const Register = () => {
     IdNumber: '',
     role: 'patient', // Default role
   });
-  
-  const [validations, setValidations] = useState({
-    firstName: { valid: false, message: '' },
-    lastName: { valid: false, message: '' },
-    email: { valid: false, message: '' },
-    password: { valid: false, message: '' },
-    confirmPassword: { valid: false, message: '' },
-    contactNumber: { valid: false, message: '' },
-    IdNumber: { valid: false, message: '' },
-  });
-  
-  const [passwordStrength, setPasswordStrength] = useState({
-    score: 0,
-    hasMinLength: false,
-    hasUppercase: false,
-    hasLowercase: false,
-    hasNumber: false,
-    hasSpecialChar: false,
-  });
-  
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -141,43 +121,8 @@ const Register = () => {
     });
   };
 
-  const getPasswordStrengthLabel = () => {
-    const { score } = passwordStrength;
-    if (score === 0) return { label: 'Very Weak', color: 'bg-red-500' };
-    if (score === 1) return { label: 'Weak', color: 'bg-red-400' };
-    if (score === 2) return { label: 'Fair', color: 'bg-yellow-500' };
-    if (score === 3) return { label: 'Good', color: 'bg-yellow-400' };
-    if (score === 4) return { label: 'Strong', color: 'bg-green-400' };
-    if (score === 5) return { label: 'Very Strong', color: 'bg-green-500' };
-    return { label: '', color: '' };
-  };
-
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    
-    // Special handling for numeric-only fields
-    if ((name === 'contactNumber' || name === 'IdNumber') && !/^\d*$/.test(value)) {
-      // If non-digit characters are entered, don't update the state
-      return;
-    }
-    
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
-  };
-
   const nextStep = () => {
-    // Validate all fields in step 1 before proceeding
-    const isFirstNameValid = validateField('firstName', formData.firstName);
-    const isLastNameValid = validateField('lastName', formData.lastName);
-    const isEmailValid = validateField('email', formData.email);
-    const isPasswordValid = validateField('password', formData.password);
-    const isConfirmPasswordValid = validateField('confirmPassword', formData.confirmPassword);
-    
-    if (isFirstNameValid && isLastNameValid && isEmailValid && isPasswordValid && isConfirmPasswordValid) {
-      setStep(step + 1);
-    }
+    setStep(step + 1);
   };
 
   const prevStep = () => {
@@ -186,23 +131,23 @@ const Register = () => {
 
   const validateStep1 = () => {
     return (
-      validations.firstName.valid && 
-      validations.lastName.valid && 
-      validations.email.valid && 
-      validations.password.valid && 
-      validations.confirmPassword.valid
+      formData.firstName && 
+      formData.lastName && 
+      formData.email && 
+      formData.password && 
+      formData.password === formData.confirmPassword
     );
   };
 
   const validateStep2 = () => {
-    return validations.contactNumber.valid && validations.IdNumber.valid;
+    return formData.contactNumber && formData.IdNumber && formData.role;
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    // Final validation check
-    if (!validateStep1() || !validateStep2()) {
+    if (formData.password !== formData.confirmPassword) {
+      alert("Passwords don't match");
       return;
     }
 
@@ -223,8 +168,6 @@ const Register = () => {
         navigate('/pharmacy/dashboard');
       } else if (user.role === 'laboratory') {
         navigate('/laboratory/dashboard');
-      } else if (user.role === 'dataentry') {
-        navigate('/dataentry/dashboard');
       } else {
         navigate('/dashboard');
       }
