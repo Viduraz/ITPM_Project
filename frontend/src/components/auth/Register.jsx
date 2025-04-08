@@ -1,6 +1,6 @@
 // src/components/auth/Register.jsx
-import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../pages/context/AuthContext';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
@@ -27,97 +27,55 @@ const Register = () => {
   const { register, error } = useAuth();
   const navigate = useNavigate();
 
-  // Validate fields when they change
-  useEffect(() => {
-    validateField('firstName', formData.firstName);
-    validateField('lastName', formData.lastName);
-    validateField('email', formData.email);
-    checkPasswordStrength(formData.password);
-    validateField('password', formData.password);
-    validateField('confirmPassword', formData.confirmPassword);
-    validateField('contactNumber', formData.contactNumber);
-    validateField('IdNumber', formData.IdNumber);
-  }, [formData]);
-
-  const validateField = (fieldName, value) => {
-    let isValid = false;
-    let message = '';
-
-    switch (fieldName) {
-      case 'firstName':
-        isValid = value.trim().length >= 2;
-        message = isValid ? '' : 'First name must be at least 2 characters';
-        break;
-        
-      case 'lastName':
-        isValid = value.trim().length >= 2;
-        message = isValid ? '' : 'Last name must be at least 2 characters';
-        break;
-        
-      case 'email':
-        const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-        isValid = emailRegex.test(value);
-        message = isValid ? '' : 'Please enter a valid email address';
-        break;
-        
-      case 'password':
-        isValid = passwordStrength.score >= 3;
-        message = isValid ? '' : 'Password is not strong enough';
-        break;
-        
-      case 'confirmPassword':
-        isValid = value === formData.password && value !== '';
-        message = isValid ? '' : 'Passwords do not match';
-        break;
-        
-      case 'contactNumber':
-        // Only allow exactly 10 digits
-        const phoneRegex = /^\d{10}$/;
-        isValid = phoneRegex.test(value);
-        message = isValid ? '' : 'Please enter exactly 10 digits for phone number';
-        break;
-        
-      case 'IdNumber':
-        // Only allow exactly 12 digits
-        const idRegex = /^\d{12}$/;
-        isValid = idRegex.test(value);
-        message = isValid ? '' : 'Please enter exactly 12 digits for ID number';
-        break;
-        
-      default:
-        break;
+  // Animation variants
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        delayChildren: 0.3,
+        staggerChildren: 0.2
+      }
     }
-
-    setValidations(prev => ({
-      ...prev,
-      [fieldName]: { valid: isValid, message }
-    }));
-
-    return isValid;
   };
 
-  const checkPasswordStrength = (password) => {
-    const hasMinLength = password.length >= 8;
-    const hasUppercase = /[A-Z]/.test(password);
-    const hasLowercase = /[a-z]/.test(password);
-    const hasNumber = /\d/.test(password);
-    const hasSpecialChar = /[!@#$%^&*(),.?":{}|<>]/.test(password);
-    
-    // Calculate score (0-5) based on criteria met
-    let score = 0;
-    if (hasMinLength) score++;
-    if (hasUppercase) score++;
-    if (hasLowercase) score++;
-    if (hasNumber) score++;
-    if (hasSpecialChar) score++;
-    
-    setPasswordStrength({
-      score,
-      hasMinLength,
-      hasUppercase,
-      hasLowercase,
-      hasNumber,
-      hasSpecialChar
+  const itemVariants = {
+    hidden: { y: 20, opacity: 0 },
+    visible: {
+      y: 0,
+      opacity: 1
+    }
+  };
+
+  const pageVariants = {
+    initial: (direction) => ({
+      x: direction > 0 ? 300 : -300,
+      opacity: 0
+    }),
+    animate: {
+      x: 0,
+      opacity: 1,
+      transition: {
+        type: "spring",
+        stiffness: 300,
+        damping: 30
+      }
+    },
+    exit: (direction) => ({
+      x: direction > 0 ? -300 : 300,
+      opacity: 0,
+      transition: {
+        type: "spring",
+        stiffness: 300,
+        damping: 30
+      }
+    })
+  };
+
+  const handleChange = (e) => {
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value
     });
   };
 
@@ -178,225 +136,566 @@ const Register = () => {
     }
   };
 
-  // Modified renderField function
-  const renderField = (id, label, type, required = true) => {
-    const validation = validations[id];
-    
-    // Extra props for specific fields
-    const extraProps = {};
-    
-    if (id === 'contactNumber') {
-      extraProps.maxLength = 10;
-      extraProps.pattern = '[0-9]*'; // Only allow digits
-      extraProps.inputMode = 'numeric'; // Show numeric keyboard on mobile
-      extraProps.placeholder = '0771234567';
+  const togglePasswordVisibility = () => {
+    setShowPassword(!showPassword);
+  };
+
+  const toggleConfirmPasswordVisibility = () => {
+    setShowConfirmPassword(!showConfirmPassword);
+  };
+
+  // Get role icon
+  const getRoleIcon = (role) => {
+    switch (role) {
+      case 'patient':
+        return <FaHeartbeat className="text-pink-500" />;
+      case 'doctor':
+        return <FaUserMd className="text-blue-500" />;
+      default:
+        return <FaUser className="text-indigo-500" />;
     }
-    
-    if (id === 'IdNumber') {
-      extraProps.maxLength = 12;
-      extraProps.pattern = '[0-9]*'; // Only allow digits
-      extraProps.inputMode = 'numeric'; // Show numeric keyboard on mobile
-      extraProps.placeholder = '199912345678';
-    }
-    
-    return (
-      <div>
-        <label htmlFor={id} className="block text-sm font-medium text-gray-700">
-          {label}
-        </label>
-        <div className="mt-1 relative">
-          <input
-            id={id}
-            name={id}
-            type={type}
-            required={required}
-            className={`block w-full px-3 py-2 border ${
-              validation.message ? 'border-red-300' : 'border-gray-300'
-            } rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm`}
-            value={formData[id]}
-            onChange={handleChange}
-            {...extraProps}
-          />
-          {validation.valid && (
-            <span className="absolute inset-y-0 right-0 pr-3 flex items-center text-green-500">
-              <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-              </svg>
-            </span>
-          )}
-        </div>
-        {validation.message && (
-          <p className="mt-1 text-sm text-red-600">{validation.message}</p>
-        )}
-      </div>
-    );
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-500 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-8">
-        <div>
-          <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-            Create your account
-          </h2>
-          <p className="mt-2 text-center text-sm text-gray-600">
-            Step {step} of 2
-          </p>
-        </div>
+    <div className="min-h-screen flex relative overflow-hidden bg-gradient-to-r from-indigo-50 via-blue-50 to-purple-50">
+      {/* Animated background elements */}
+      <div className="absolute inset-0 -z-10 overflow-hidden">
+        <motion.div 
+          className="absolute w-64 h-64 rounded-full bg-gradient-to-r from-indigo-300 to-purple-300 blur-3xl opacity-30"
+          animate={{
+            x: [0, 100, 0],
+            y: [0, 50, 0],
+          }}
+          transition={{
+            duration: 20,
+            repeat: Infinity,
+            ease: "easeInOut"
+          }}
+          style={{ top: '10%', left: '15%' }}
+        />
+        <motion.div 
+          className="absolute w-72 h-72 rounded-full bg-gradient-to-r from-blue-300 to-cyan-300 blur-3xl opacity-20"
+          animate={{
+            x: [0, -70, 0],
+            y: [0, 100, 0],
+          }}
+          transition={{
+            duration: 25,
+            repeat: Infinity,
+            ease: "easeInOut",
+            delay: 1
+          }}
+          style={{ top: '40%', right: '10%' }}
+        />
+        <motion.div 
+          className="absolute w-80 h-80 rounded-full bg-gradient-to-r from-purple-300 to-pink-300 blur-3xl opacity-20"
+          animate={{
+            x: [0, 120, 0],
+            y: [0, -50, 0],
+          }}
+          transition={{
+            duration: 22,
+            repeat: Infinity,
+            ease: "easeInOut",
+            delay: 2
+          }}
+          style={{ bottom: '5%', left: '25%' }}
+        />
+      </div>
 
-        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-          {step === 1 && (
-            <div className="space-y-4">
-              {renderField('firstName', 'First Name', 'text')}
-              {renderField('lastName', 'Last Name', 'text')}
-              {renderField('email', 'Email address', 'email')}
-              
-              <div>
-                <label htmlFor="password" className="block text-sm font-medium text-gray-700">
-                  Password
-                </label>
-                <div className="mt-1 relative">
-                  <input
-                    id="password"
-                    name="password"
-                    type="password"
-                    required
-                    className={`block w-full px-3 py-2 border ${
-                      validations.password.message ? 'border-red-300' : 'border-gray-300'
-                    } rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm`}
-                    value={formData.password}
-                    onChange={handleChange}
-                  />
-                  {validations.password.valid && (
-                    <span className="absolute inset-y-0 right-0 pr-3 flex items-center text-green-500">
-                      <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                      </svg>
-                    </span>
-                  )}
+      {/* Left side with illustration */}
+      <div className="hidden lg:flex lg:w-1/2 flex-col justify-center items-center p-12">
+        <div className="max-w-md relative z-10">
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8 }}
+            className="backdrop-blur-sm bg-white/30 rounded-3xl p-10 border border-white/30 shadow-xl"
+          >
+            <div className="mb-10 flex items-center justify-center">
+              <div className="relative">
+                <div className="absolute -inset-1 rounded-full bg-gradient-to-r from-indigo-500 to-purple-600 blur-sm opacity-75"></div>
+                <div className="relative bg-white rounded-full p-3">
+                  <FaHospital className="text-4xl text-indigo-600" />
                 </div>
-                
-                {/* Password strength meter */}
-                <div className="mt-1">
-                  <div className="w-full bg-gray-200 rounded-full h-2.5">
-                    <div 
-                      className={`h-2.5 rounded-full ${getPasswordStrengthLabel().color}`} 
-                      style={{ width: `${passwordStrength.score * 20}%` }}
-                    ></div>
+              </div>
+              <h1 className="text-3xl font-bold ml-4 bg-gradient-to-r from-indigo-700 to-purple-700 bg-clip-text text-transparent">
+                MedHistory System
+              </h1>
+            </div>
+            
+            <h2 className="text-3xl font-bold mb-6 text-gray-800">Join Our Healthcare Platform</h2>
+            
+            <p className="text-xl mb-10 leading-relaxed text-gray-700">
+              Create an account to access comprehensive healthcare services and manage your medical information securely.
+            </p>
+
+            <div className="bg-gradient-to-br from-indigo-600 to-purple-700 p-6 rounded-xl text-white shadow-lg">
+              <div className="mb-6 flex justify-between items-center">
+                <h3 className="font-bold text-xl">Registration Benefits</h3>
+                <FaUserPlus className="text-2xl" />
+              </div>
+
+              <ul className="space-y-4">
+                <li className="flex items-start">
+                  <div className="bg-white/20 rounded-full p-1.5 mr-3 mt-0.5">
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+                    </svg>
                   </div>
-                  <p className="text-xs text-gray-600 mt-1">
-                    Strength: {getPasswordStrengthLabel().label}
-                  </p>
-                  
-                  {/* Password requirements */}
-                  <ul className="mt-1 text-xs text-gray-600 space-y-1">
-                    <li className={`flex items-center ${passwordStrength.hasMinLength ? 'text-green-500' : 'text-gray-500'}`}>
-                      <span className="mr-1">{passwordStrength.hasMinLength ? '✓' : '○'}</span>
-                      At least 8 characters
-                    </li>
-                    <li className={`flex items-center ${passwordStrength.hasUppercase ? 'text-green-500' : 'text-gray-500'}`}>
-                      <span className="mr-1">{passwordStrength.hasUppercase ? '✓' : '○'}</span>
-                      At least one uppercase letter
-                    </li>
-                    <li className={`flex items-center ${passwordStrength.hasLowercase ? 'text-green-500' : 'text-gray-500'}`}>
-                      <span className="mr-1">{passwordStrength.hasLowercase ? '✓' : '○'}</span>
-                      At least one lowercase letter
-                    </li>
-                    <li className={`flex items-center ${passwordStrength.hasNumber ? 'text-green-500' : 'text-gray-500'}`}>
-                      <span className="mr-1">{passwordStrength.hasNumber ? '✓' : '○'}</span>
-                      At least one number
-                    </li>
-                    <li className={`flex items-center ${passwordStrength.hasSpecialChar ? 'text-green-500' : 'text-gray-500'}`}>
-                      <span className="mr-1">{passwordStrength.hasSpecialChar ? '✓' : '○'}</span>
-                      At least one special character
-                    </li>
-                  </ul>
-                </div>
-                                
-                {validations.password.message && (
-                  <p className="mt-1 text-sm text-red-600">{validations.password.message}</p>
-                )}
-              </div>
-              
-              {renderField('confirmPassword', 'Confirm Password', 'password')}
-
-              <div className="flex justify-end">
-                <button
-                  type="button"
-                  className={`inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white ${
-                    validateStep1() 
-                      ? 'bg-indigo-600 hover:bg-indigo-700' 
-                      : 'bg-indigo-300 cursor-not-allowed'
-                  } focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500`}
-                  onClick={nextStep}
-                  disabled={!validateStep1()}
-                >
-                  Next
-                </button>
-              </div>
+                  <span>Complete access to your medical history</span>
+                </li>
+                <li className="flex items-start">
+                  <div className="bg-white/20 rounded-full p-1.5 mr-3 mt-0.5">
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+                    </svg>
+                  </div>
+                  <span>Book appointments with healthcare providers</span>
+                </li>
+                <li className="flex items-start">
+                  <div className="bg-white/20 rounded-full p-1.5 mr-3 mt-0.5">
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+                    </svg>
+                  </div>
+                  <span>Secure sharing of health records with providers</span>
+                </li>
+                <li className="flex items-start">
+                  <div className="bg-white/20 rounded-full p-1.5 mr-3 mt-0.5">
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+                    </svg>
+                  </div>
+                  <span>Track medications and set reminders</span>
+                </li>
+              </ul>
             </div>
-          )}
-
-          {step === 2 && (
-            <div className="space-y-4">
-              {renderField('contactNumber', 'Contact Number', 'tel')}
-              {renderField('IdNumber', 'ID Number', 'text')}
-              
-              <div>
-                <label htmlFor="role" className="block text-sm font-medium text-gray-700">Role</label>
-                <select
-                  id="role"
-                  name="role"
-                  className="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                  value={formData.role}
-                  onChange={handleChange}
-                >
-                  <option value="patient">Patient</option>
-                  <option value="doctor">Doctor</option>
-                  <option value="pharmacy">Pharmacy</option>
-                  <option value="laboratory">Laboratory</option>
-                  <option value="dataentry">Data Entry</option>
-                  <option value="admin">Admin</option>
-                </select>
-              </div>
-
-              {error && (
-                <div className="p-2 bg-red-100 border-l-4 border-red-500 text-red-700">
-                  <p>{error}</p>
-                </div>
-              )}
-
-              <div className="flex justify-between">
-                <button
-                  type="button"
-                  className="inline-flex justify-center py-2 px-4 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-                  onClick={prevStep}
-                >
-                  Back
-                </button>
-                
-                <button
-                  type="submit"
-                  disabled={isLoading || !validateStep2()}
-                  className={`inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white ${
-                    validateStep2() && !isLoading
-                      ? 'bg-indigo-600 hover:bg-indigo-700' 
-                      : 'bg-indigo-300 cursor-not-allowed'
-                  } focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500`}
-                >
-                  {isLoading ? 'Creating account...' : 'Create account'}
-                </button>
-              </div>
-            </div>
-          )}
-        </form>
-        
-        <div className="text-sm text-center">
-          <span>Already have an account? </span>
-          <a href="/login" className="font-medium text-indigo-600 hover:text-indigo-500">
-            Sign in here
-          </a>
+          </motion.div>
         </div>
+      </div>
+
+      {/* Right side with registration form */}
+      <div className="w-full lg:w-1/2 flex items-center justify-center p-8">
+        <motion.div 
+          className="max-w-md w-full"
+          variants={containerVariants}
+          initial="hidden"
+          animate="visible"
+        >
+          <motion.div 
+            className="backdrop-blur-sm bg-white/80 rounded-3xl p-8 sm:p-10 shadow-xl border border-white/50"
+          >
+            <motion.div variants={itemVariants} className="text-center mb-8">
+              <h2 className="text-3xl font-bold bg-gradient-to-r from-indigo-700 to-purple-700 bg-clip-text text-transparent mb-2">Create Account</h2>
+              <div className="flex items-center justify-center">
+                <div className={`h-1 w-10 mx-1 rounded-full ${step === 1 ? 'bg-indigo-600' : 'bg-gray-300'}`}></div>
+                <div className={`h-1 w-10 mx-1 rounded-full ${step === 2 ? 'bg-indigo-600' : 'bg-gray-300'}`}></div>
+              </div>
+              <p className="mt-2 text-gray-600">Step {step} of 2: {step === 1 ? 'Basic Information' : 'Additional Details'}</p>
+            </motion.div>
+
+            <form onSubmit={handleSubmit} className="space-y-6">
+              <AnimatePresence mode="wait" custom={step}>
+                {step === 1 && (
+                  <motion.div
+                    key="step1"
+                    custom={1}
+                    variants={pageVariants}
+                    initial="initial"
+                    animate="animate"
+                    exit="exit"
+                    className="space-y-4"
+                  >
+                    <div className="grid grid-cols-2 gap-4">
+                      <motion.div 
+                        variants={itemVariants} 
+                        className="transform transition-all duration-300 hover:scale-[1.02] focus-within:scale-[1.02]"
+                      >
+                        <label htmlFor="firstName" className="block text-sm font-medium text-gray-700 mb-1">First Name</label>
+                        <div className="relative rounded-xl overflow-hidden shadow-sm group">
+                          <div className="absolute inset-y-0 left-0 w-12 bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center">
+                            <FaUser className="text-white" />
+                          </div>
+                          <input
+                            id="firstName"
+                            name="firstName"
+                            type="text"
+                            required
+                            className="pl-16 appearance-none block w-full px-3 py-3 border-0 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition duration-150 ease-in-out text-sm"
+                            placeholder="John"
+                            value={formData.firstName}
+                            onChange={handleChange}
+                          />
+                          <div className="absolute inset-y-0 right-0 w-1 bg-gradient-to-br from-indigo-500 to-purple-600 group-hover:w-2 transition-all duration-300"></div>
+                        </div>
+                      </motion.div>
+
+                      <motion.div 
+                        variants={itemVariants} 
+                        className="transform transition-all duration-300 hover:scale-[1.02] focus-within:scale-[1.02]"
+                      >
+                        <label htmlFor="lastName" className="block text-sm font-medium text-gray-700 mb-1">Last Name</label>
+                        <div className="relative rounded-xl overflow-hidden shadow-sm group">
+                          <div className="absolute inset-y-0 left-0 w-12 bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center">
+                            <FaUser className="text-white" />
+                          </div>
+                          <input
+                            id="lastName"
+                            name="lastName"
+                            type="text"
+                            required
+                            className="pl-16 appearance-none block w-full px-3 py-3 border-0 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition duration-150 ease-in-out text-sm"
+                            placeholder="Doe"
+                            value={formData.lastName}
+                            onChange={handleChange}
+                          />
+                          <div className="absolute inset-y-0 right-0 w-1 bg-gradient-to-br from-indigo-500 to-purple-600 group-hover:w-2 transition-all duration-300"></div>
+                        </div>
+                      </motion.div>
+                    </div>
+
+                    <motion.div 
+                      variants={itemVariants} 
+                      className="transform transition-all duration-300 hover:scale-[1.02] focus-within:scale-[1.02]"
+                    >
+                      <label htmlFor="email-address" className="block text-sm font-medium text-gray-700 mb-1">Email Address</label>
+                      <div className="relative rounded-xl overflow-hidden shadow-sm group">
+                        <div className="absolute inset-y-0 left-0 w-12 bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center">
+                          <FaEnvelope className="text-white" />
+                        </div>
+                        <input
+                          id="email-address"
+                          name="email"
+                          type="email"
+                          autoComplete="email"
+                          required
+                          className="pl-16 appearance-none block w-full px-3 py-3 border-0 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition duration-150 ease-in-out text-sm"
+                          placeholder="johndoe@example.com"
+                          value={formData.email}
+                          onChange={handleChange}
+                        />
+                        <div className="absolute inset-y-0 right-0 w-1 bg-gradient-to-br from-indigo-500 to-purple-600 group-hover:w-2 transition-all duration-300"></div>
+                      </div>
+                    </motion.div>
+
+                    <motion.div 
+                      variants={itemVariants}
+                      className="transform transition-all duration-300 hover:scale-[1.02] focus-within:scale-[1.02]"
+                    >
+                      <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">Password</label>
+                      <div className="relative rounded-xl overflow-hidden shadow-sm group">
+                        <div className="absolute inset-y-0 left-0 w-12 bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center">
+                          <FaLock className="text-white" />
+                        </div>
+                        <input
+                          id="password"
+                          name="password"
+                          type={showPassword ? "text" : "password"}
+                          required
+                          className="pl-16 appearance-none block w-full px-3 py-3 border-0 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition duration-150 ease-in-out text-sm"
+                          placeholder="••••••••"
+                          value={formData.password}
+                          onChange={handleChange}
+                        />
+                        <div className="absolute inset-y-0 right-0 px-3 flex items-center">
+                          <button
+                            type="button"
+                            onClick={togglePasswordVisibility}
+                            className="text-gray-400 hover:text-gray-600 focus:outline-none p-1"
+                          >
+                            {showPassword ? (
+                              <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
+                              </svg>
+                            ) : (
+                              <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                              </svg>
+                            )}
+                          </button>
+                        </div>
+                        <div className="absolute inset-y-0 right-0 w-1 bg-gradient-to-br from-indigo-500 to-purple-600 group-hover:w-2 transition-all duration-300"></div>
+                      </div>
+                    </motion.div>
+
+                    <motion.div 
+                      variants={itemVariants}
+                      className="transform transition-all duration-300 hover:scale-[1.02] focus-within:scale-[1.02]"
+                    >
+                      <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-1">Confirm Password</label>
+                      <div className="relative rounded-xl overflow-hidden shadow-sm group">
+                        <div className="absolute inset-y-0 left-0 w-12 bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center">
+                          <FaLock className="text-white" />
+                        </div>
+                        <input
+                          id="confirmPassword"
+                          name="confirmPassword"
+                          type={showConfirmPassword ? "text" : "password"}
+                          required
+                          className="pl-16 appearance-none block w-full px-3 py-3 border-0 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition duration-150 ease-in-out text-sm"
+                          placeholder="••••••••"
+                          value={formData.confirmPassword}
+                          onChange={handleChange}
+                        />
+                        <div className="absolute inset-y-0 right-0 px-3 flex items-center">
+                          <button
+                            type="button"
+                            onClick={toggleConfirmPasswordVisibility}
+                            className="text-gray-400 hover:text-gray-600 focus:outline-none p-1"
+                          >
+                            {showConfirmPassword ? (
+                              <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
+                              </svg>
+                            ) : (
+                              <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                              </svg>
+                            )}
+                          </button>
+                        </div>
+                        <div className="absolute inset-y-0 right-0 w-1 bg-gradient-to-br from-indigo-500 to-purple-600 group-hover:w-2 transition-all duration-300"></div>
+                      </div>
+                      {formData.password && formData.confirmPassword && formData.password !== formData.confirmPassword && (
+                        <p className="mt-1 text-sm text-red-600">Passwords don't match</p>
+                      )}
+                    </motion.div>
+
+                    <motion.div variants={itemVariants} className="pt-4">
+                      <motion.button
+                        type="button"
+                        onClick={nextStep}
+                        disabled={!validateStep1()}
+                        className={`relative w-full flex justify-center py-3 px-4 border-0 text-sm font-medium rounded-xl text-white overflow-hidden shadow-lg ${
+                          validateStep1() ? 'opacity-100' : 'opacity-60 cursor-not-allowed'
+                        }`}
+                        style={{ background: validateStep1() ? "linear-gradient(to right, #6366f1, #8b5cf6, #d946ef)" : "linear-gradient(to right, #9ca3af, #6b7280)" }}
+                        whileHover={validateStep1() ? { 
+                          scale: 1.02,
+                          boxShadow: "0 10px 25px -5px rgba(99, 102, 241, 0.4)"
+                        } : {}}
+                        whileTap={validateStep1() ? { scale: 0.98 } : {}}
+                      >
+                        <span className="relative flex items-center z-10">
+                          <span className="mr-2">Continue</span>
+                          <FaArrowRight />
+                        </span>
+                      </motion.button>
+                    </motion.div>
+                  </motion.div>
+                )}
+
+                {step === 2 && (
+                  <motion.div
+                    key="step2"
+                    custom={2}
+                    variants={pageVariants}
+                    initial="initial"
+                    animate="animate"
+                    exit="exit"
+                    className="space-y-4"
+                  >
+                    <motion.div 
+                      variants={itemVariants} 
+                      className="transform transition-all duration-300 hover:scale-[1.02] focus-within:scale-[1.02]"
+                    >
+                      <label htmlFor="contactNumber" className="block text-sm font-medium text-gray-700 mb-1">Contact Number</label>
+                      <div className="relative rounded-xl overflow-hidden shadow-sm group">
+                        <div className="absolute inset-y-0 left-0 w-12 bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center">
+                          <FaPhone className="text-white" />
+                        </div>
+                        <input
+                          id="contactNumber"
+                          name="contactNumber"
+                          type="text"
+                          required
+                          className="pl-16 appearance-none block w-full px-3 py-3 border-0 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition duration-150 ease-in-out text-sm"
+                          placeholder="+1 (555) 123-4567"
+                          value={formData.contactNumber}
+                          onChange={handleChange}
+                        />
+                        <div className="absolute inset-y-0 right-0 w-1 bg-gradient-to-br from-indigo-500 to-purple-600 group-hover:w-2 transition-all duration-300"></div>
+                      </div>
+                    </motion.div>
+
+                    <motion.div 
+                      variants={itemVariants} 
+                      className="transform transition-all duration-300 hover:scale-[1.02] focus-within:scale-[1.02]"
+                    >
+                      <label htmlFor="IdNumber" className="block text-sm font-medium text-gray-700 mb-1">ID Number</label>
+                      <div className="relative rounded-xl overflow-hidden shadow-sm group">
+                        <div className="absolute inset-y-0 left-0 w-12 bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center">
+                          <FaIdCard className="text-white" />
+                        </div>
+                        <input
+                          id="IdNumber"
+                          name="IdNumber"
+                          type="text"
+                          required
+                          className="pl-16 appearance-none block w-full px-3 py-3 border-0 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition duration-150 ease-in-out text-sm"
+                          placeholder="ID number or passport"
+                          value={formData.IdNumber}
+                          onChange={handleChange}
+                        />
+                        <div className="absolute inset-y-0 right-0 w-1 bg-gradient-to-br from-indigo-500 to-purple-600 group-hover:w-2 transition-all duration-300"></div>
+                      </div>
+                    </motion.div>
+
+                    <motion.div variants={itemVariants} className="transform transition-all duration-300 hover:scale-[1.02] focus-within:scale-[1.02]">
+                      <label htmlFor="role" className="block text-sm font-medium text-gray-700 mb-1">Select Your Role</label>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div 
+                          className={`relative rounded-xl p-4 border-2 cursor-pointer flex flex-col items-center justify-center transition-all duration-300 ${
+                            formData.role === 'patient' 
+                              ? 'border-indigo-500 bg-indigo-50' 
+                              : 'border-gray-200 hover:border-indigo-300'
+                          }`}
+                          onClick={() => setFormData({...formData, role: 'patient'})}
+                        >
+                          <div className={`w-10 h-10 rounded-full flex items-center justify-center mb-2 ${
+                            formData.role === 'patient' 
+                              ? 'bg-indigo-100 text-indigo-700' 
+                              : 'bg-gray-100 text-gray-500'
+                          }`}>
+                            <FaHeartbeat />
+                          </div>
+                          <span className={`font-medium ${
+                            formData.role === 'patient' 
+                              ? 'text-indigo-700' 
+                              : 'text-gray-500'
+                          }`}>Patient</span>
+                          {formData.role === 'patient' && (
+                            <div className="absolute top-2 right-2 w-5 h-5 bg-indigo-500 rounded-full flex items-center justify-center">
+                              <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+                              </svg>
+                            </div>
+                          )}
+                        </div>
+                        <div 
+                          className={`relative rounded-xl p-4 border-2 cursor-pointer flex flex-col items-center justify-center transition-all duration-300 ${
+                            formData.role === 'doctor' 
+                              ? 'border-indigo-500 bg-indigo-50' 
+                              : 'border-gray-200 hover:border-indigo-300'
+                          }`}
+                          onClick={() => setFormData({...formData, role: 'doctor'})}
+                        >
+                          <div className={`w-10 h-10 rounded-full flex items-center justify-center mb-2 ${
+                            formData.role === 'doctor' 
+                              ? 'bg-indigo-100 text-indigo-700' 
+                              : 'bg-gray-100 text-gray-500'
+                          }`}>
+                            <FaUserMd />
+                          </div>
+                          <span className={`font-medium ${
+                            formData.role === 'doctor' 
+                              ? 'text-indigo-700' 
+                              : 'text-gray-500'
+                          }`}>Doctor</span>
+                          {formData.role === 'doctor' && (
+                            <div className="absolute top-2 right-2 w-5 h-5 bg-indigo-500 rounded-full flex items-center justify-center">
+                              <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+                              </svg>
+                            </div>
+                          )}
+                        </div>
+                        <input 
+                          type="hidden" 
+                          name="role" 
+                          value={formData.role} 
+                          onChange={handleChange} 
+                        />
+                      </div>
+                    </motion.div>
+
+                    {error && (
+                      <motion.div 
+                        className="rounded-xl overflow-hidden"
+                        initial={{ opacity: 0, scale: 0.95 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        transition={{ duration: 0.3 }}
+                      >
+                        <div className="bg-red-50 border-l-4 border-red-500 p-4">
+                          <div className="flex">
+                            <div className="flex-shrink-0">
+                              <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+                                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                              </svg>
+                            </div>
+                            <div className="ml-3">
+                              <p className="text-sm text-red-700">{error}</p>
+                            </div>
+                          </div>
+                        </div>
+                      </motion.div>
+                    )}
+
+                    <motion.div variants={itemVariants} className="flex justify-between pt-4">
+                      <motion.button
+                        type="button"
+                        onClick={prevStep}
+                        className="relative flex justify-center py-3 px-6 border-0 text-sm font-medium rounded-xl text-gray-700 overflow-hidden shadow-md bg-white/90"
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                      >
+                        <span className="relative flex items-center z-10">
+                          <FaArrowLeft className="mr-2" />
+                          <span>Back</span>
+                        </span>
+                      </motion.button>
+                      
+                      <motion.button
+                        type="submit"
+                        disabled={isLoading || !validateStep2()}
+                        className={`relative flex justify-center py-3 px-6 border-0 text-sm font-medium rounded-xl text-white overflow-hidden shadow-lg ${
+                          validateStep2() && !isLoading ? 'opacity-100' : 'opacity-60 cursor-not-allowed'
+                        }`}
+                        style={{ background: validateStep2() && !isLoading ? "linear-gradient(to right, #6366f1, #8b5cf6, #d946ef)" : "linear-gradient(to right, #9ca3af, #6b7280)" }}
+                        whileHover={validateStep2() && !isLoading ? { 
+                          scale: 1.02,
+                          boxShadow: "0 10px 25px -5px rgba(99, 102, 241, 0.4)"
+                        } : {}}
+                        whileTap={validateStep2() && !isLoading ? { scale: 0.98 } : {}}
+                      >
+                        <span className="relative flex items-center z-10">
+                          {isLoading ? (
+                            <>
+                              <svg className="animate-spin -ml-1 mr-2 h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                              </svg>
+                              Creating...
+                            </>
+                          ) : (
+                            <>
+                              <FaUserCheck className="mr-2" />
+                              Create Account
+                            </>
+                          )}
+                        </span>
+                      </motion.button>
+                    </motion.div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </form>
+
+            <motion.div 
+              variants={itemVariants} 
+              className="mt-8 text-center border-t border-gray-200 pt-6"
+            >
+              <p className="text-gray-600">Already have an account? {" "}
+                <Link to="/login" className="font-medium text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 transition-all">
+                  Sign in here
+                </Link>
+              </p>
+            </motion.div>
+          </motion.div>
+        </motion.div>
       </div>
     </div>
   );
