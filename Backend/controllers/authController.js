@@ -5,6 +5,7 @@ import Patient from '../models/Patient.js';
 import Doctor from '../models/Doctor.js';
 import Pharmacy from '../models/Pharmacy.js';
 import Laboratory from '../models/Laboratory.js';
+import DataEntry from '../models/DataEntry.js';
 
 // Generate JWT token
 const generateToken = (userId) => {
@@ -37,6 +38,16 @@ export const register = async (req, res) => {
     });
 
     await user.save();
+
+    // If user is a data entry operator, create corresponding profile
+    if (role === 'dataentry') {
+      const dataEntry = new DataEntry({
+        userId: user._id,
+        workShift: 'Morning',
+        department: 'General'
+      });
+      await dataEntry.save();
+    }
 
     // Generate token
     const token = generateToken(user._id);
@@ -77,6 +88,13 @@ export const login = async (req, res) => {
     // Generate token
     const token = generateToken(user._id);
 
+    // Get profile data based on role
+    let profileData = null;
+    if (user.role === 'dataentry') {
+      profileData = await DataEntry.findOne({ userId: user._id });
+      console.log('Data entry user authenticated:', user);
+    }
+
     res.status(200).json({
       message: 'Login successful',
       token,
@@ -86,7 +104,8 @@ export const login = async (req, res) => {
         lastName: user.lastName,
         email: user.email,
         role: user.role
-      }
+      },
+      profile: profileData
     });
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -195,6 +214,43 @@ export const registerLaboratory = async (req, res) => {
     res.status(201).json({
       message: 'Laboratory registered successfully',
       laboratory
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// Register data entry operator
+export const registerDataEntry = async (req, res) => {
+  try {
+    const { userId, workShift, supervisor, department } = req.body;
+
+    // Check if data entry profile already exists
+    const existingDataEntry = await DataEntry.findOne({ userId });
+    if (existingDataEntry) {
+      return res.status(400).json({ message: 'Data Entry profile already exists for this user' });
+    }
+
+    const dataEntry = new DataEntry({
+      userId,
+      workShift: workShift || 'Morning',
+      supervisor,
+      department: department || 'General',
+      assignedTasks: []
+    });
+
+    await dataEntry.save();
+
+    // Update user role if needed
+    const user = await User.findById(userId);
+    if (user && user.role !== 'dataentry') {
+      user.role = 'dataentry';
+      await user.save();
+    }
+
+    res.status(201).json({
+      message: 'Data Entry operator registered successfully',
+      dataEntry
     });
   } catch (error) {
     res.status(500).json({ message: error.message });
