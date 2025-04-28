@@ -82,7 +82,7 @@ const PatientPrescription = () => {
     e.preventDefault();
     setIsSubmitting(true);
     setErrorMessages([]);
-
+  
     // Validate form fields
     let errors = [];
     if (!formData.patient) errors.push('Patient ID is required');
@@ -91,19 +91,18 @@ const PatientPrescription = () => {
     if (!formData.medications || formData.medications.length === 0) errors.push('At least one medication is required');
     if (!formData.medications.every((med) => med.name.trim())) errors.push('Medication name is required for all medications');
     if (!formData.date) errors.push('Date is required');
-
+  
     if (errors.length > 0) {
       setErrorMessages(errors);
       setIsSubmitting(false);
       return;
     }
-
+  
     if (TESTING_MODE) {
       // Simulate successful submission in testing mode
       setTimeout(() => {
         console.log("Form data submitted (TEST MODE):", formData);
         setSuccessMessage('Prescription created successfully (Test Mode)');
-        // Reset form except date
         setFormData({
           patient: '',
           doctor: '',
@@ -130,26 +129,32 @@ const PatientPrescription = () => {
       }, 1000);
       return; // Skip the actual API call
     }
-
+  
     try {
       // Get token from localStorage
       const token = localStorage.getItem('token');
       
+      if (!token) {
+        setErrorMessages(['You are not authenticated. Please log in first.']);
+        setIsSubmitting(false);
+        return;
+      }
+  
       // Setup axios headers with authorization
       const config = {
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': token ? `Bearer ${token}` : '' 
-        }
+          'Authorization': `Bearer ${token}`,
+        },
       };
-
+  
       // Make the API call
       const response = await axios.post(
-        'http://localhost:3000/api/prescriptions', // Your endpoint for prescriptions
+        'http://localhost:3000/api/dataentry/create-prescription', // Ensure this is the correct endpoint
         formData,
         config
       );
-
+  
       console.log("API Response:", response.data);
       setSuccessMessage('Prescription created successfully');
       
@@ -184,6 +189,7 @@ const PatientPrescription = () => {
       setIsSubmitting(false);
     }
   };
+  
 
   return (
     <div className="w-full p-6">

@@ -102,8 +102,6 @@ export const createDiagnosis = async (req, res) => {
   }
 };
 
-
-// @desc    Create a new prescription
 export const createPrescription = async (req, res) => {
   try {
     const {
@@ -119,10 +117,40 @@ export const createPrescription = async (req, res) => {
       pharmacyDetails,
     } = req.body;
 
-    // Basic validation (you can expand this)
+    // Debugging: Log the request body
+    console.log('Request Body:', req.body);
+
+    // Basic validation
     if (!patient || !doctor || !diagnosis || !medications || medications.length === 0) {
       return res.status(400).json({ message: 'Patient, Doctor, Diagnosis, and at least one medication are required.' });
     }
+
+    // Validate references (Patient, Doctor, Diagnosis)
+    const patientExists = await Patient.findById(patient);
+    if (!patientExists) {
+      return res.status(404).json({ message: 'Patient not found' });
+    }
+
+    const doctorExists = await Doctor.findById(doctor);
+    if (!doctorExists) {
+      return res.status(404).json({ message: 'Doctor not found' });
+    }
+
+    const diagnosisExists = await Diagnosis.findById(diagnosis);
+    if (!diagnosisExists) {
+      return res.status(404).json({ message: 'Diagnosis not found' });
+    }
+
+    // Validate medications array structure
+    if (!Array.isArray(medications) || medications.length === 0) {
+      return res.status(400).json({ message: 'At least one medication is required.' });
+    }
+
+    medications.forEach((med, index) => {
+      if (!med.name || !med.dosage || !med.frequency || !med.duration) {
+        return res.status(400).json({ message: `Medication ${index + 1} is missing required fields.` });
+      }
+    });
 
     // Create the prescription
     const newPrescription = new Prescription({
@@ -140,6 +168,9 @@ export const createPrescription = async (req, res) => {
 
     // Save to database
     const savedPrescription = await newPrescription.save();
+    if (!savedPrescription) {
+      return res.status(500).json({ message: 'Error saving the prescription.' });
+    }
 
     res.status(201).json({
       message: 'Prescription created successfully',

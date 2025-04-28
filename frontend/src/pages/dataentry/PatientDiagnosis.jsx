@@ -1,18 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 
-const TESTING_MODE = true; // Set to false when backend is ready
-
-/*************  ✨ Windsurf Command ⭐  *************/
-/**
- * Component for creating a diagnosis.
- *
- * Handles form submission and API call to create a new diagnosis.
- * Also handles form validation and error messages.
- *
- * @return {JSX.Element} Component JSX
- */
-/*******  252fb353-f758-4b90-be7c-1fd84c961878  *******/
 const PatientDiagnosis = () => {
   const [formData, setFormData] = useState({
     patientId: '',
@@ -23,40 +11,18 @@ const PatientDiagnosis = () => {
     symptoms: '', // Treating symptoms as a string to be split later into an array
     notes: '', // Optional
     followUpDate: '', // Optional
-    date: '', // This will be removed
   });
 
   const [errorMessages, setErrorMessages] = useState([]);
   const [successMessage, setSuccessMessage] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Set the initial date on component mount (this will no longer be used)
   useEffect(() => {
     const currentDate = new Date().toISOString().split('T')[0];
     setFormData((prevState) => ({
       ...prevState,
       followUpDate: currentDate, // Set follow-up date to today's date by default
     }));
-
-    // If in TESTING_MODE, auto-fill dummy data
-    if (TESTING_MODE) {
-      setFormData({
-        patientId: '1234567890abcdef12345678', // Dummy Patient ID
-        doctorId: 'abcdef1234567890abcdef12', // Dummy Doctor ID
-        hospitalId: 'abcd1234abcd1234abcd1234', // Dummy Hospital ID (optional)
-        diagnosisDetails: 'Migraine caused by stress', // Dummy Diagnosis
-        condition: 'Migraine', // Dummy Condition
-        symptoms: 'Headache, dizziness, nausea', // Dummy Symptoms (to be split into an array)
-        notes: 'Patient is advised to rest and hydrate.', // Dummy Notes (optional)
-        followUpDate: '2025-04-20', // Dummy Follow-up Date (optional)
-        date: currentDate, // This will be removed
-      });
-
-      // Auto-submit the form after a brief delay
-      setTimeout(() => {
-        handleSubmit({ preventDefault: () => {} }); // Trigger form submission
-      }, 2000); // Auto-submit after 2 seconds
-    }
   }, []);
 
   const handleChange = (e) => {
@@ -89,27 +55,6 @@ const PatientDiagnosis = () => {
       return;
     }
 
-    if (TESTING_MODE) {
-      // Simulate successful submission in testing mode
-      setTimeout(() => {
-        console.log("Form data submitted (TEST MODE):", formData);
-        setSuccessMessage('Diagnosis created successfully (Test Mode)');
-        // Reset form except followUpDate
-        setFormData({
-          patientId: '',
-          doctorId: '',
-          hospitalId: '',
-          diagnosisDetails: '',
-          condition: '',
-          symptoms: '',
-          notes: '',
-          followUpDate: new Date().toISOString().split('T')[0], // Keep today's date for follow-up
-        });
-        setIsSubmitting(false);
-      }, 1000);
-      return; // Skip the actual API call
-    }
-
     try {
       // Get token from localStorage
       const token = localStorage.getItem('token');
@@ -124,7 +69,7 @@ const PatientDiagnosis = () => {
 
       // Make the API call
       const response = await axios.post(
-        'http://localhost:3000/api/diagnosis', // Update this if needed
+        'http://localhost:3000/api/dataentry/diagnosis', // Your backend URL
         formData,
         config
       );
