@@ -3,7 +3,8 @@ import {
   createDataEntryProfile,
   getDataEntryProfile,
   createDiagnosis,
-  createPrescriptionDataEntry,
+  createPrescription,
+  getAllPrescriptions,
   getAssignedTasks,
   getAllPatients
 } from '../controllers/dataentryController.js';
@@ -26,7 +27,9 @@ router.get('/profile', getDataEntryProfile);
 router.post('/diagnosis', createDiagnosis);
 
 // Route to create prescription data entry
-router.post('/create-prescription', createPrescriptionDataEntry);
+router.post('/create-prescription', createPrescription);
+
+router.get('/prescriptions', getAllPrescriptions);  // Add this line for prescription retrieval
 
 // Route to fetch assigned tasks
 router.get('/tasks', getAssignedTasks);

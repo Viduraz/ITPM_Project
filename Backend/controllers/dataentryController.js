@@ -68,6 +68,7 @@ export const getDataEntryProfile = async (req, res) => {
   }
 };
 
+//create diagnosis
 export const createDiagnosis = async (req, res) => {
   try {
     const { patientId, hospitalId, symptoms, diagnosisDetails, condition, notes, followUpDate } = req.body;
@@ -102,55 +103,61 @@ export const createDiagnosis = async (req, res) => {
 };
 
 
-// Create prescription data entry
-export const createPrescriptionDataEntry = async (req, res) => {
+// @desc    Create a new prescription
+export const createPrescription = async (req, res) => {
   try {
-    const { patientId, doctorId, hospitalId, diagnosisId, medications, notes } = req.body;
-    
-    // Find the patient
-    const patient = await Patient.findOne({ userId: patientId });
-    if (!patient) {
-      return res.status(404).json({ message: 'Patient not found' });
-    }
-    
-    // Find the doctor
-    const doctor = await Doctor.findOne({ userId: doctorId });
-    if (!doctor) {
-      return res.status(404).json({ message: 'Doctor not found' });
-    }
-
-    const prescription = new Prescription({
-      patient: patient._id,
-      doctor: doctor._id,
-      hospital: hospitalId,
-      diagnosis: diagnosisId,
-      date: new Date(),
+    const {
+      patient,
+      doctor,
+      hospital,
+      diagnosis,
+      date,
       medications,
       notes,
-      status: 'active',
+      status,
+      purchasedFrom,
+      pharmacyDetails,
+    } = req.body;
+
+    // Basic validation (you can expand this)
+    if (!patient || !doctor || !diagnosis || !medications || medications.length === 0) {
+      return res.status(400).json({ message: 'Patient, Doctor, Diagnosis, and at least one medication are required.' });
+    }
+
+    // Create the prescription
+    const newPrescription = new Prescription({
+      patient,
+      doctor,
+      hospital,
+      diagnosis,
+      date: date || new Date(), // fallback if not provided
+      medications,
+      notes,
+      status,
+      purchasedFrom,
+      pharmacyDetails,
     });
 
-    await prescription.save();
-
-    // Record this task for the data entry operator
-    const dataEntry = await DataEntry.findOne({ userId: req.user._id });
-    if (dataEntry) {
-      dataEntry.assignedTasks.push({
-        taskType: 'Prescription Entry',
-        assignedBy: req.user._id,
-        assignedAt: new Date(),
-        completedAt: new Date(),
-        status: 'Completed'
-      });
-      await dataEntry.save();
-    }
+    // Save to database
+    const savedPrescription = await newPrescription.save();
 
     res.status(201).json({
       message: 'Prescription created successfully',
-      prescription
+      prescription: savedPrescription,
     });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    console.error('Error creating prescription:', error);
+    res.status(500).json({ message: 'Server error while creating prescription' });
+  }
+};
+
+// Fetch all prescriptions (this can be extended to filter by patient, doctor, etc.)
+export const getAllPrescriptions = async (req, res) => {
+  try {
+    const prescriptions = await Prescription.find(); // Fetch all prescriptions
+    res.status(200).json(prescriptions); // Return them as JSON
+  } catch (error) {
+    res.status(500).json({ message: 'Error fetching prescriptions', error });
   }
 };
 

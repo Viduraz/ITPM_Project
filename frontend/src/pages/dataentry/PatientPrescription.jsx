@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 
-const TESTING_MODE = true; // Set to false when backend is ready
+const TESTING_MODE = false; // Set to false when backend is ready
 
 const PatientPrescription = () => {
   const [formData, setFormData] = useState({
