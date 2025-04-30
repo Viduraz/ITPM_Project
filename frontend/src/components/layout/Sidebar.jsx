@@ -1,17 +1,18 @@
 // src/components/layout/Sidebar.jsx
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 
 const Sidebar = ({ userRole }) => {
   const location = useLocation();
   const [isMobileOpen, setIsMobileOpen] = useState(false);
+  const [isCollapsed, setIsCollapsed] = useState(false);
 
   // Define navigation items based on user role
   const navigationItems = {
     patient: [
       { name: 'Dashboard', path: '/patient/dashboard', icon: 'home' },
       { name: 'Medical History', path: '/patient/medical-history', icon: 'document' },
-      { name: 'Find Doctors', path: '/patient/find-doctors', icon: 'search' },
+      { name: 'Find Doctors', path: '/doctor-search', icon: 'search' }, // Update this line
     ],
     doctor: [
       { name: 'Dashboard', path: '/doctor/dashboard', icon: 'home' },
@@ -31,6 +32,11 @@ const Sidebar = ({ userRole }) => {
       { name: 'Dashboard', path: '/admin/dashboard', icon: 'home' },
       { name: 'User Management', path: '/admin/users', icon: 'users' },
       { name: 'Statistics', path: '/admin/stats', icon: 'chart' },
+    ],
+    dataentry: [
+      { name: 'Dashboard', path: '/dataentry/dashboard', icon: 'home' },
+      { name: 'Patient Diagnosis', path: '/dataentry/patientdiagnosis', icon: 'document' },
+      { name: 'Prescriptions', path: '/dataentry/patientprescriptions', icon: 'clipboard' },
     ],
   };
 
@@ -89,25 +95,53 @@ const Sidebar = ({ userRole }) => {
 
   return (
     <>
-      {/* Mobile sidebar toggle */}
-      <div className="md:hidden">
+      {/* Mobile sidebar toggle - only shown on mobile */}
+      <div className="md:hidden z-20 fixed top-4 left-4">
         <button 
           onClick={() => setIsMobileOpen(!isMobileOpen)} 
-          className="p-2 text-gray-600 rounded-md hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+          className="p-2 bg-white text-gray-600 rounded-md shadow-md hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+          aria-label="Toggle navigation menu"
         >
           <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16" />
+            {isMobileOpen ? (
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+            ) : (
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16" />
+            )}
           </svg>
         </button>
       </div>
 
       {/* Desktop sidebar */}
-      <div className={`bg-white shadow-lg w-64 fixed inset-y-0 left-0 transform ${isMobileOpen ? 'translate-x-0' : '-translate-x-full'} md:translate-x-0 transition-transform duration-300 ease-in-out z-30 pt-16`}>
+      <div className={`bg-white shadow-lg fixed inset-y-0 left-0 transform ${
+        isMobileOpen ? 'translate-x-0' : '-translate-x-full'
+      } md:translate-x-0 transition-transform duration-300 ease-in-out z-30 pt-16 ${
+        isCollapsed ? 'w-16' : 'w-64'
+      }`}>
+        {/* Collapse toggle button */}
+        <button
+          onClick={() => setIsCollapsed(!isCollapsed)}
+          className="absolute right-0 top-20 transform translate-x-6 bg-white rounded-full p-2 shadow-md hover:bg-gray-50 focus:outline-none"
+        >
+          <svg 
+            className={`w-4 h-4 text-gray-600 transform ${isCollapsed ? 'rotate-180' : ''}`}
+            fill="none" 
+            stroke="currentColor" 
+            viewBox="0 0 24 24"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7" />
+          </svg>
+        </button>
+
         <div className="h-full overflow-y-auto">
           <div className="px-2 py-4">
-            <div className="mb-8">
-              <h2 className="text-xl font-semibold text-gray-700 px-4">{userRole ? userRole.charAt(0).toUpperCase() + userRole.slice(1) : ''} Menu</h2>
-            </div>
+            {!isCollapsed && (
+              <div className="mb-8">
+                <h2 className="text-xl font-semibold text-gray-700 px-4">
+                  {userRole ? userRole.charAt(0).toUpperCase() + userRole.slice(1) : ''} Menu
+                </h2>
+              </div>
+            )}
             <nav className="space-y-1">
               {items.map((item) => {
                 const isActive = location.pathname === item.path;
@@ -120,17 +154,25 @@ const Sidebar = ({ userRole }) => {
                         ? 'bg-indigo-100 text-indigo-700'
                         : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900'
                     }`}
+                    title={isCollapsed ? item.name : ''}
                   >
-                    <div className={`mr-3 ${isActive ? 'text-indigo-700' : 'text-gray-500 group-hover:text-gray-600'}`}>
+                    <div className={`${isCollapsed ? 'mx-auto' : 'mr-3'} ${
+                      isActive ? 'text-indigo-700' : 'text-gray-500 group-hover:text-gray-600'
+                    }`}>
                       {renderIcon(item.icon)}
                     </div>
-                    {item.name}
+                    {!isCollapsed && item.name}
                   </Link>
                 );
               })}
             </nav>
           </div>
         </div>
+      </div>
+
+      {/* Main content margin compensation */}
+      <div className={`${isCollapsed ? '-ml-[89vw]' : '-ml-[65vw]'} transition-all duration-300 flex-1`}>
+        {/* Your main content goes here */}
       </div>
     </>
   );
