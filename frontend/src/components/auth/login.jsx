@@ -115,11 +115,11 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen flex relative overflow-hidden bg-gradient-to-r from-indigo-50 via-blue-50 to-purple-50">
+    <div className="min-h-screen flex relative overflow-hidden bg-gradient-to-r from-emerald-50 via-cyan-50 to-blue-50">
       {/* Animated background elements */}
       <div className="absolute inset-0 -z-10 overflow-hidden">
         <motion.div 
-          className="absolute w-64 h-64 rounded-full bg-gradient-to-r from-indigo-300 to-purple-300 blur-3xl opacity-30"
+          className="absolute w-64 h-64 rounded-full bg-gradient-to-r from-cyan-300 to-blue-300 blur-3xl opacity-20"
           animate={{
             x: [0, 100, 0],
             y: [0, 50, 0],
@@ -132,7 +132,7 @@ const Login = () => {
           style={{ top: '10%', left: '15%' }}
         />
         <motion.div 
-          className="absolute w-72 h-72 rounded-full bg-gradient-to-r from-blue-300 to-cyan-300 blur-3xl opacity-20"
+          className="absolute w-72 h-72 rounded-full bg-gradient-to-r from-emerald-300 to-teal-300 blur-3xl opacity-20"
           animate={{
             x: [0, -70, 0],
             y: [0, 100, 0],
@@ -146,7 +146,7 @@ const Login = () => {
           style={{ top: '40%', right: '10%' }}
         />
         <motion.div 
-          className="absolute w-80 h-80 rounded-full bg-gradient-to-r from-purple-300 to-pink-300 blur-3xl opacity-20"
+          className="absolute w-80 h-80 rounded-full bg-gradient-to-r from-blue-300 to-indigo-300 blur-3xl opacity-20"
           animate={{
             x: [0, 120, 0],
             y: [0, -50, 0],
@@ -172,12 +172,12 @@ const Login = () => {
           >
             <div className="mb-10 flex items-center justify-center">
               <div className="relative">
-                <div className="absolute -inset-1 rounded-full bg-gradient-to-r from-indigo-500 to-purple-600 blur-sm opacity-75"></div>
+                <div className="absolute -inset-1 rounded-full bg-gradient-to-r from-cyan-500 to-blue-600 blur-sm opacity-75"></div>
                 <div className="relative bg-white rounded-full p-3">
-                  <FaHospital className="text-4xl text-indigo-600" />
+                  <FaHospital className="text-4xl text-cyan-600" />
                 </div>
               </div>
-              <h1 className="text-3xl font-bold ml-4 bg-gradient-to-r from-indigo-700 to-purple-700 bg-clip-text text-transparent">
+              <h1 className="text-3xl font-bold ml-4 bg-gradient-to-r from-cyan-700 to-blue-700 bg-clip-text text-transparent">
                 MedHistory System
               </h1>
             </div>
@@ -196,13 +196,13 @@ const Login = () => {
                   animate={{ opacity: 1, x: 0 }}
                   exit={{ opacity: 0, x: -50 }}
                   transition={{ duration: 0.5 }}
-                  className="absolute inset-0 bg-gradient-to-br from-indigo-600 to-purple-700 p-6 rounded-xl text-white shadow-lg transform hover:scale-[1.02] transition-transform"
+                  className="absolute inset-0 bg-gradient-to-br from-cyan-600 to-blue-700 p-6 rounded-xl text-white shadow-lg transform hover:scale-[1.02] transition-transform"
                 >
                   <div className="bg-white/20 rounded-full w-12 h-12 flex items-center justify-center mb-4">
                     {features[activeIndex].icon}
                   </div>
                   <h3 className="font-bold text-xl mb-2">{features[activeIndex].title}</h3>
-                  <p className="text-indigo-100">{features[activeIndex].description}</p>
+                  <p className="text-cyan-100">{features[activeIndex].description}</p>
                   <div className="absolute bottom-4 left-0 w-full flex justify-center space-x-2">
                     {features.map((_, idx) => (
                       <button 
@@ -219,16 +219,38 @@ const Login = () => {
             
             <div className="mt-10 grid grid-cols-3 gap-4 text-center">
               <div className="rounded-xl bg-white/50 backdrop-blur-sm p-4 shadow-sm">
-                <h4 className="font-bold text-3xl text-indigo-700 mb-1">10k+</h4>
+                <h4 className="font-bold text-3xl text-cyan-700 mb-1">10k+</h4>
                 <p className="text-gray-600 text-sm">Users</p>
               </div>
               <div className="rounded-xl bg-white/50 backdrop-blur-sm p-4 shadow-sm">
-                <h4 className="font-bold text-3xl text-indigo-700 mb-1">500+</h4>
+                <h4 className="font-bold text-3xl text-cyan-700 mb-1">500+</h4>
                 <p className="text-gray-600 text-sm">Doctors</p>
               </div>
               <div className="rounded-xl bg-white/50 backdrop-blur-sm p-4 shadow-sm">
-                <h4 className="font-bold text-3xl text-indigo-700 mb-1">98%</h4>
+                <h4 className="font-bold text-3xl text-cyan-700 mb-1">98%</h4>
                 <p className="text-gray-600 text-sm">Satisfaction</p>
+              </div>
+            </div>
+            
+            {/* Added testimonial section */}
+            <div className="mt-10 p-6 bg-white/40 backdrop-blur-sm rounded-xl border border-white/50 shadow-md">
+              <div className="flex items-start">
+                <div className="mr-4 mt-1">
+                  <div className="w-10 h-10 rounded-full bg-gradient-to-r from-cyan-500 to-blue-500 flex items-center justify-center text-white font-bold">
+                    JD
+                  </div>
+                </div>
+                <div>
+                  <div className="flex items-center mb-2">
+                    {[...Array(5)].map((_, i) => (
+                      <svg key={i} className="w-4 h-4 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118l-2.799-2.034c-.784-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path>
+                      </svg>
+                    ))}
+                  </div>
+                  <p className="text-gray-700 italic text-sm">"The MedHistory platform has transformed how I manage my healthcare. Having all my records in one place has been incredible."</p>
+                  <p className="mt-2 font-medium text-gray-800">John Doe, Patient</p>
+                </div>
               </div>
             </div>
           </motion.div>
@@ -247,7 +269,7 @@ const Login = () => {
             className="backdrop-blur-sm bg-white/80 rounded-3xl p-10 shadow-xl border border-white/50"
           >
             <motion.div variants={itemVariants} className="text-center mb-10">
-              <h2 className="text-4xl font-bold bg-gradient-to-r from-indigo-700 to-purple-700 bg-clip-text text-transparent mb-2">Sign In</h2>
+              <h2 className="text-4xl font-bold bg-gradient-to-r from-cyan-700 to-blue-700 bg-clip-text text-transparent mb-2">Sign In</h2>
               <p className="text-gray-600">Access your healthcare dashboard</p>
             </motion.div>
 
@@ -262,7 +284,7 @@ const Login = () => {
               >
                 <label htmlFor="email-address" className="block text-sm font-medium text-gray-700 mb-1">Email Address</label>
                 <div className="relative rounded-xl overflow-hidden shadow-sm group">
-                  <div className="absolute inset-y-0 left-0 w-12 bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center">
+                  <div className="absolute inset-y-0 left-0 w-12 bg-gradient-to-br from-cyan-500 to-blue-500 flex items-center justify-center">
                     <FaEnvelope className="text-white" />
                   </div>
                   <input
@@ -271,12 +293,12 @@ const Login = () => {
                     type="email"
                     autoComplete="email"
                     required
-                    className="pl-16 appearance-none block w-full px-3 py-3.5 border-0  focus:outline-none focus:ring-2 focus:ring-indigo-500 transition duration-150 ease-in-out text-sm"
+                    className="pl-16 appearance-none block w-full px-3 py-3.5 border-0 bg-white/80 backdrop-blur-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-500 transition duration-150 ease-in-out text-sm"
                     placeholder="johndoe@example.com"
                     value={formData.email}
                     onChange={handleChange}
                   />
-                  <div className="absolute inset-y-0 right-0 w-1 bg-gradient-to-br from-indigo-500 to-purple-600 group-hover:w-2 transition-all duration-300"></div>
+                  <div className="absolute inset-y-0 right-0 w-1 bg-gradient-to-br from-cyan-500 to-blue-500 group-hover:w-2 transition-all duration-300"></div>
                 </div>
               </motion.div>
 
@@ -286,12 +308,12 @@ const Login = () => {
               >
                 <div className="flex items-center justify-between mb-1">
                   <label htmlFor="password" className="block text-sm font-medium text-gray-700">Password</label>
-                  <a href="#" className="text-xs text-indigo-600 hover:text-indigo-500 transition-all hover:underline">
+                  <a href="#" className="text-xs text-cyan-600 hover:text-cyan-500 transition-all hover:underline">
                     Forgot password?
                   </a>
                 </div>
                 <div className="relative rounded-xl overflow-hidden shadow-sm group">
-                  <div className="absolute inset-y-0 left-0 w-12 bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center">
+                  <div className="absolute inset-y-0 left-0 w-12 bg-gradient-to-br from-cyan-500 to-blue-500 flex items-center justify-center">
                     <FaLock className="text-white" />
                   </div>
                   <input
@@ -300,7 +322,7 @@ const Login = () => {
                     type={showPassword ? "text" : "password"}
                     autoComplete="current-password"
                     required
-                    className="pl-16 appearance-none block w-full px-3 py-3.5 border-0 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition duration-150 ease-in-out text-sm"
+                    className="pl-16 appearance-none block w-full px-3 py-3.5 border-0 bg-white/80 backdrop-blur-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-500 transition duration-150 ease-in-out text-sm"
                     placeholder="••••••••"
                     value={formData.password}
                     onChange={handleChange}
@@ -323,7 +345,7 @@ const Login = () => {
                       )}
                     </button>
                   </div>
-                  <div className="absolute inset-y-0 right-0 w-1 bg-gradient-to-br from-indigo-500 to-purple-600 group-hover:w-2 transition-all duration-300"></div>
+                  <div className="absolute inset-y-0 right-0 w-1 bg-gradient-to-br from-cyan-500 to-blue-500 group-hover:w-2 transition-all duration-300"></div>
                 </div>
               </motion.div>
 
@@ -354,24 +376,26 @@ const Login = () => {
                   type="submit"
                   disabled={isLoading}
                   className="relative w-full flex justify-center py-3.5 px-4 border-0 text-sm font-medium rounded-xl text-white overflow-hidden shadow-lg"
-                  style={{ background: "linear-gradient(to right, #6366f1, #8b5cf6, #d946ef)" }}
+                  style={{ background: "linear-gradient(to right, #0891b2, #2563eb)" }}
                   whileHover={{ 
                     scale: 1.02,
-                    boxShadow: "0 10px 25px -5px rgba(99, 102, 241, 0.4)"
+                    boxShadow: "0 10px 25px -5px rgba(14, 165, 233, 0.5)"
                   }}
                   whileTap={{ scale: 0.98 }}
                 >
-                  <span className="absolute inset-0 bg-gradient-to-r from-indigo-600 to-purple-600"></span>
-                  <span className="absolute inset-0 bg-gradient-to-r from-indigo-500 to-purple-500 opacity-0 hover:opacity-100 transition-opacity duration-300"></span>
+                  <span className="absolute inset-0 bg-gradient-to-r from-cyan-600 to-blue-600"></span>
+                  <span className="absolute inset-0 bg-gradient-to-r from-cyan-500 to-blue-500 opacity-0 hover:opacity-100 transition-opacity duration-300"></span>
                   <motion.span 
-                    className="absolute top-0 left-0 w-full h-full"
+                    className="absolute top-0 left-0 w-full h-full opacity-0 hover:opacity-20 bg-white"
                     animate={{ 
-                      background: ['linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.2) 50%, rgba(255,255,255,0) 100%)', 
-                                  'linear-gradient(90deg, rgba(255,255,255,0) 100%, rgba(255,255,255,0.2) 150%, rgba(255,255,255,0) 200%)'],
-                      left: ['-100%', '100%'] 
+                      x: ['-100%', '100%'],
                     }}
-                    transition={{ duration: 1.5, repeat: Infinity, repeatDelay: 3 }}
-                  ></motion.span>
+                    transition={{ 
+                      repeat: Infinity, 
+                      duration: 1.5, 
+                      repeatDelay: 1.5 
+                    }}
+                  />
                   <span className="relative flex items-center z-10">
                     <FaSignInAlt className="mr-2" />
                     {isLoading ? (
@@ -393,7 +417,7 @@ const Login = () => {
               className="mt-8 text-center border-t border-gray-200 pt-6"
             >
               <p className="text-gray-600">Don't have an account? {" "}
-                <Link to="/register" className="font-medium text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 transition-all">
+                <Link to="/register" className="font-medium text-transparent bg-clip-text bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 transition-all">
                   Register here
                 </Link>
               </p>
