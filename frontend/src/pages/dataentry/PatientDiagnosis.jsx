@@ -1,28 +1,27 @@
-// src/pages/doctor/DiagnosisForm.jsx
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 
-const TESTING_MODE = true; // Set to false when backend is ready
-
-const DiagnosisForm = () => {
+const PatientDiagnosis = () => {
   const [formData, setFormData] = useState({
     patientId: '',
-    symptoms: '',
+    doctorId: '',
+    hospitalId: '', // Optional field
     diagnosisDetails: '',
-    treatmentPlan: '',
-    date: '',
+    condition: '',
+    symptoms: '', // Treating symptoms as a string to be split later into an array
+    notes: '', // Optional
+    followUpDate: '', // Optional
   });
 
   const [errorMessages, setErrorMessages] = useState([]);
   const [successMessage, setSuccessMessage] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Set the initial date on component mount
   useEffect(() => {
     const currentDate = new Date().toISOString().split('T')[0];
     setFormData((prevState) => ({
       ...prevState,
-      date: currentDate,
+      followUpDate: currentDate, // Set follow-up date to today's date by default
     }));
   }, []);
 
@@ -44,33 +43,16 @@ const DiagnosisForm = () => {
     // Validate form fields
     let errors = [];
     if (!formData.patientId) errors.push('Patient ID is required');
-    if (!formData.symptoms.trim()) errors.push('Symptoms are required');
+    if (!formData.doctorId) errors.push('Doctor ID is required');
+    if (!formData.condition.trim()) errors.push('Condition is required');
     if (!formData.diagnosisDetails.trim()) errors.push('Diagnosis details are required');
-    if (!formData.treatmentPlan.trim()) errors.push('Treatment Plan details are required');
-    if (!formData.date) errors.push('Date is required');
+    if (!formData.symptoms.trim()) errors.push('Symptoms are required');
+    if (!formData.followUpDate) errors.push('Follow-up date is required');
 
     if (errors.length > 0) {
       setErrorMessages(errors);
       setIsSubmitting(false);
       return;
-    }
-
-    if (TESTING_MODE) {
-      // Simulate successful submission in testing mode
-      setTimeout(() => {
-        console.log("Form data submitted (TEST MODE):", formData);
-        setSuccessMessage('Diagnosis created successfully (Test Mode)');
-        // Reset form except date
-        setFormData({
-          patientId: '',
-          symptoms: '',
-          diagnosisDetails: '',
-          treatmentPlan: '',
-          date: new Date().toISOString().split('T')[0],
-        });
-        setIsSubmitting(false);
-      }, 1000);
-      return; // Skip the actual API call
     }
 
     try {
@@ -85,24 +67,9 @@ const DiagnosisForm = () => {
         }
       };
 
-      // For testing without backend, uncomment this block and comment out the real API call
-      // setTimeout(() => {
-      //   console.log("Form data submitted:", formData);
-      //   setSuccessMessage('Diagnosis created successfully');
-      //   // Reset form except date
-      //   setFormData({
-      //     patientId: '',
-      //     symptoms: '',
-      //     diagnosisDetails: '',
-      //     treatmentPlan: '',
-      //     date: new Date().toISOString().split('T')[0],
-      //   });
-      //   setIsSubmitting(false);
-      // }, 1000);
-      
       // Make the API call
       const response = await axios.post(
-        'http://localhost:3000/api/diagnosis', // Try this first
+        'http://localhost:3000/api/dataentry/diagnosis', // Your backend URL
         formData,
         config
       );
@@ -110,13 +77,16 @@ const DiagnosisForm = () => {
       console.log("API Response:", response.data);
       setSuccessMessage('Diagnosis created successfully');
       
-      // Reset form except date
+      // Reset form except followUpDate
       setFormData({
         patientId: '',
-        symptoms: '',
+        doctorId: '',
+        hospitalId: '',
         diagnosisDetails: '',
-        treatmentPlan: '',
-        date: new Date().toISOString().split('T')[0],
+        condition: '',
+        symptoms: '',
+        notes: '',
+        followUpDate: new Date().toISOString().split('T')[0], // Keep today's date for follow-up
       });
     } catch (error) {
       console.error("Error submitting diagnosis:", error);
@@ -125,6 +95,14 @@ const DiagnosisForm = () => {
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  // Convert symptoms to an array by splitting the input string
+  const handleSymptomsChange = (e) => {
+    setFormData({
+      ...formData,
+      symptoms: e.target.value,
+    });
   };
 
   return (
@@ -152,16 +130,43 @@ const DiagnosisForm = () => {
           />
         </div>
 
-        {/* Symptoms */}
+        {/* Doctor ID */}
         <div>
-          <label className="block text-sm font-medium text-gray-600">Symptoms</label>
-          <textarea
-            name="symptoms"
-            value={formData.symptoms}
+          <label className="block text-sm font-medium text-gray-600">Doctor ID</label>
+          <input
+            type="text"
+            name="doctorId"
+            value={formData.doctorId}
             onChange={handleChange}
             className="mt-1 block w-full p-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500"
-            rows="3"
-            placeholder="Describe patient symptoms"
+            placeholder="Enter doctor ID"
+            required
+          />
+        </div>
+
+        {/* Hospital ID (Optional) */}
+        <div>
+          <label className="block text-sm font-medium text-gray-600">Hospital ID</label>
+          <input
+            type="text"
+            name="hospitalId"
+            value={formData.hospitalId}
+            onChange={handleChange}
+            className="mt-1 block w-full p-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500"
+            placeholder="Enter hospital ID (optional)"
+          />
+        </div>
+
+        {/* Condition */}
+        <div>
+          <label className="block text-sm font-medium text-gray-600">Condition</label>
+          <input
+            type="text"
+            name="condition"
+            value={formData.condition}
+            onChange={handleChange}
+            className="mt-1 block w-full p-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500"
+            placeholder="Enter condition"
             required
           />
         </div>
@@ -180,30 +185,42 @@ const DiagnosisForm = () => {
           />
         </div>
 
-        {/* Treatment Plan */}
+        {/* Symptoms */}
         <div>
-          <label className="block text-sm font-medium text-gray-600">Treatment Plan</label>
+          <label className="block text-sm font-medium text-gray-600">Symptoms</label>
           <textarea
-            name="treatmentPlan"
-            value={formData.treatmentPlan}
-            onChange={handleChange}
+            name="symptoms"
+            value={formData.symptoms}
+            onChange={handleSymptomsChange}
             className="mt-1 block w-full p-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500"
             rows="3"
-            placeholder="Describe treatment plan"
+            placeholder="Enter symptoms, separated by commas"
             required
           />
         </div>
 
-        {/* Date */}
+        {/* Notes */}
         <div>
-          <label className="block text-sm font-medium text-gray-600">Date</label>
-          <input
-            type="date"
-            name="date"
-            value={formData.date}
+          <label className="block text-sm font-medium text-gray-600">Notes</label>
+          <textarea
+            name="notes"
+            value={formData.notes}
             onChange={handleChange}
             className="mt-1 block w-full p-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500"
-            required
+            rows="3"
+            placeholder="Enter any additional notes"
+          />
+        </div>
+
+        {/* Follow-up Date */}
+        <div>
+          <label className="block text-sm font-medium text-gray-600">Follow-up Date</label>
+          <input
+            type="date"
+            name="followUpDate"
+            value={formData.followUpDate}
+            onChange={handleChange}
+            className="mt-1 block w-full p-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500"
           />
         </div>
 
@@ -235,4 +252,4 @@ const DiagnosisForm = () => {
   );
 };
 
-export default DiagnosisForm;
+export default PatientDiagnosis;

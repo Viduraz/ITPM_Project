@@ -199,3 +199,17 @@ export const downloadReport = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+
+// Function to fetch patients based on search query
+export const fetchPatients = async (req, res) => {
+  try {
+    const searchQuery = req.query.searchQuery || '';
+    const patients = await Patient.find({
+      "userId.firstName": { $regex: searchQuery, $options: 'i' }
+    }).select('_id userId.firstName userId.lastName'); // Select necessary fields, including _id
+
+    res.json({ patients });
+  } catch (error) {
+    res.status(500).json({ message: "Failed to fetch patients" });
+  }
+};
