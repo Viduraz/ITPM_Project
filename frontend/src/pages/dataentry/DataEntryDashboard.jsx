@@ -1,5 +1,7 @@
 import React from "react";
 import { FaUserCircle } from "react-icons/fa";
+import PatientPrescriptionDisplay from './PatientPrescriptionDisplay'; // <-- ✅ Import here
+
 
 const DataEntryDashboard = () => {
   return (
@@ -153,6 +155,10 @@ const DataEntryDashboard = () => {
               </div>
             </div>
           </div>
+        </div>
+        {/* 🔽 Add Prescription Display Below Everything */}
+        <div className="mt-12">
+          <PatientPrescriptionDisplay />
         </div>
       </div>
     </div>

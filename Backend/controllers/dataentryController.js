@@ -68,21 +68,45 @@ export const getDataEntryProfile = async (req, res) => {
   }
 };
 
-//create diagnosis
+// Create a new diagnosis entry
 export const createDiagnosis = async (req, res) => {
   try {
-    const { patientId, hospitalId, symptoms, diagnosisDetails, condition, notes, followUpDate } = req.body;
-    
+    const {
+      patientId,
+      hospitalId,
+      symptoms,
+      diagnosisDetails,
+      condition,
+      notes,
+      followUpDate
+    } = req.body;
+
+    // Check if doctor is authenticated and has a profile
     const doctor = await Doctor.findOne({ userId: req.user._id });
-    
     if (!doctor) {
       return res.status(404).json({ message: 'Doctor profile not found' });
     }
 
-    const diagnosis = new Diagnosis({
+    // Validate patient
+    const patient = await Patient.findById(patientId);
+    if (!patient) {
+      return res.status(404).json({ message: 'Patient not found' });
+    }
+
+    // Optional: validate hospital
+    let hospital = null;
+    if (hospitalId) {
+      hospital = await Hospital.findById(hospitalId);
+      if (!hospital) {
+        return res.status(404).json({ message: 'Hospital not found' });
+      }
+    }
+
+    // Create new diagnosis
+    const newDiagnosis = new Diagnosis({
       patient: patientId,
       doctor: doctor._id,
-      hospital: hospitalId,
+      hospital: hospitalId || null,
       diagnosisDate: new Date(),
       symptoms,
       diagnosisDetails,
@@ -91,17 +115,20 @@ export const createDiagnosis = async (req, res) => {
       followUpDate
     });
 
-    await diagnosis.save();
+    await newDiagnosis.save();
 
     res.status(201).json({
       message: 'Diagnosis created successfully',
-      diagnosis
+      diagnosis: newDiagnosis
     });
+
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    console.error('Error creating diagnosis:', error);
+    res.status(500).json({ message: 'Server error while creating diagnosis', error: error.message });
   }
 };
 
+//create prescription
 export const createPrescription = async (req, res) => {
   try {
     const {
@@ -152,7 +179,7 @@ export const createPrescription = async (req, res) => {
       }
     });
 
-    // Create the prescription
+// Create the prescription
     const newPrescription = new Prescription({
       patient,
       doctor,
@@ -184,13 +211,14 @@ export const createPrescription = async (req, res) => {
 
 // Fetch all prescriptions (this can be extended to filter by patient, doctor, etc.)
 export const getAllPrescriptions = async (req, res) => {
-  try {
-    const prescriptions = await Prescription.find(); // Fetch all prescriptions
-    res.status(200).json(prescriptions); // Return them as JSON
-  } catch (error) {
-    res.status(500).json({ message: 'Error fetching prescriptions', error });
-  }
+    try {
+      const patients = await Patient.find();
+      res.status(200).json({ patients });
+    } catch (error) {
+      res.status(500).json({ message: 'Error fetching patients', error });
+    }
 };
+  
 
 // Get tasks assigned to data entry operator
 export const getAssignedTasks = async (req, res) => {
