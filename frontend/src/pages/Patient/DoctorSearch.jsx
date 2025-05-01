@@ -1,9 +1,10 @@
 // src/pages/patient/DoctorSearch.jsx
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useParams, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import axios from 'axios';
 
-// 1. Define your specialties
+// Keep your specialties list
 const specialties = [
   { id: 'anesthesiology', name: 'Anesthesiology & Reanimation' },
   { id: 'dentistry',       name: 'Dentistry' },
@@ -17,231 +18,15 @@ const specialties = [
   { id: 'urology',         name: 'Urology' },
 ];
 
-// Add this featured doctors data near the top of the file
-const featuredDoctors = [
-  {
-    id: 'f1',
-    name: 'Dr. Sarah Wilson',
-    title: 'Chief of Internal Medicine',
-    specialty: 'Internal Medicine',
-    image: 'https://xsgames.co/randomusers/assets/avatars/female/10.jpg',
-    sessions: [
-      {
-        date: 'March 30, 2025',
-        time: '09:00 AM',
-        appointments: 15,
-        status: 'AVAILABLE',
-        location: 'Central Hospital - Colombo'
-      },
-      {
-        date: 'April 01, 2025',
-        time: '02:00 PM',
-        appointments: 8,
-        status: 'AVAILABLE',
-        location: 'Central Hospital - Colombo'
-      }
-    ],
-    otherLocations: [
-      'Central Hospital - Colombo',
-      'Medicare Center - Nugegoda',
-      'Family Care Clinic - Rajagiriya'
-    ],
-    rating: 4.9,
-    experience: '15+ years',
-    specialization: 'Diabetes & Endocrinology'
-  },
-  {
-    id: 'f2',
-    name: 'Dr. James Anderson',
-    title: 'Senior Cardiologist',
-    specialty: 'Cardiology',
-    image: 'https://xsgames.co/randomusers/assets/avatars/male/11.jpg',
-    sessions: [
-      {
-        date: 'March 29, 2025',
-        time: '10:00 AM',
-        appointments: 12,
-        status: 'AVAILABLE',
-        location: 'Heart Care Center - Colombo'
-      }
-    ],
-    otherLocations: [
-      'Heart Care Center - Colombo',
-      'National Hospital - Colombo',
-      'Private Practice - Bambalapitiya'
-    ],
-    rating: 4.8,
-    experience: '20+ years',
-    specialization: 'Interventional Cardiology'
-  },
-  {
-    id: 'f3',
-    name: 'Dr. Emily Chang',
-    title: 'Pediatric Specialist',
-    specialty: 'Pediatrics',
-    image: 'https://xsgames.co/randomusers/assets/avatars/female/12.jpg',
-    sessions: [
-      {
-        date: 'March 31, 2025',
-        time: '09:00 AM',
-        appointments: 20,
-        status: 'AVAILABLE',
-        location: 'Children\'s Hospital - Colombo'
-      }
-    ],
-    otherLocations: [
-      'Children\'s Hospital - Colombo',
-      'Family Care Center - Dehiwala',
-      'Kids Clinic - Battaramulla'
-    ],
-    rating: 4.9,
-    experience: '12+ years',
-    specialization: 'Child Development'
-  }
-];
-
-// 2. Define doctor data for each specialty (example: 3 doctors each)
-const doctorsData = {
-  anesthesiology: [
-    {
-      id: 1,
-      name: 'Dr. Mushtaq Ahmad',
-      title: 'Consultant of Anesthesiology and Reanimation',
-      specialty: 'Anesthesiology',
-      image: 'https://xsgames.co/randomusers/assets/avatars/male/1.jpg',
-      rating: 4.7,
-      experience: '12+ years',
-      specialization: 'General Anesthesia',
-      sessions: [
-        {
-          date: 'March 29, 2025',
-          time: '01:00 PM',
-          appointments: 25,
-          status: 'FULL',
-          location: 'ASIRI Hospital - Colombo'
-        },
-        {
-          date: 'March 31, 2025',
-          time: '06:30 AM',
-          appointments: 9,
-          status: 'FULL',
-          location: 'ASIRI Hospital - Colombo'
-        },
-        {
-          date: 'April 05, 2025',
-          time: '01:00 PM',
-          appointments: 4,
-          status: 'HALF',
-          location: 'ASIRI Hospital - Colombo'
-        }
-      ],
-      otherLocations: [
-        'ASIRI Hospital - Galle',
-        'ASIRI Surgical Hospital - Kirimandala Mw - Colombo 05',
-        'Body Doc Medicare - Malabe'
-      ]
-    },
-    {
-      id: 2,
-      name: 'Dr. John Smith',
-      title: 'Anesthesiologist',
-      specialty: 'Anesthesiology',
-      image: 'https://xsgames.co/randomusers/assets/avatars/male/2.jpg',
-      rating: 4.8,
-      experience: '15+ years',
-      specialization: 'Regional Anesthesia',
-      sessions: [
-        {
-          date: 'March 30, 2025',
-          time: '10:00 AM',
-          appointments: 10,
-          status: 'AVAILABLE',
-          location: 'Central Hospital - Colombo'
-        }
-      ],
-      otherLocations: [
-        'Central Hospital - Colombo',
-        'Medicare Center - Nugegoda'
-      ]
-    },
-    {
-      id: 3,
-      name: 'Dr. Sarah Connor',
-      title: 'Anesthesia Specialist',
-      specialty: 'Anesthesiology',
-      image: 'https://xsgames.co/randomusers/assets/avatars/female/3.jpg',
-      rating: 4.9,
-      experience: '10+ years',
-      specialization: 'Pediatric Anesthesia',
-      sessions: [
-        {
-          date: 'April 01, 2025',
-          time: '09:00 AM',
-          appointments: 8,
-          status: 'AVAILABLE',
-          location: 'Children\'s Hospital - Colombo'
-        }
-      ],
-      otherLocations: [
-        'Children\'s Hospital - Colombo',
-        'Family Care Center - Dehiwala'
-      ]
-    },
-  ],
-  dentistry: [
-    {
-      id: 4,
-      name: 'Dr. Jane Doe',
-      title: 'Dentist',
-      image: 'https://xsgames.co/randomusers/assets/avatars/female/4.jpg',
-    },
-    {
-      id: 5,
-      name: 'Dr. Emily White',
-      title: 'Pediatric Dentist',
-      image: 'https://xsgames.co/randomusers/assets/avatars/female/5.jpg',
-    },
-    {
-      id: 6,
-      name: 'Dr. Carlos Garcia',
-      title: 'Oral Surgeon',
-      image: 'https://xsgames.co/randomusers/assets/avatars/male/6.jpg',
-    },
-  ],
-  dermatology: [
-    {
-      id: 7,
-      name: 'Dr. Kevin Patel',
-      title: 'Dermatologist',
-      image: 'https://xsgames.co/randomusers/assets/avatars/male/7.jpg',
-    },
-    {
-      id: 8,
-      name: 'Dr. Nina Brown',
-      title: 'Skin Care Specialist',
-      image: 'https://xsgames.co/randomusers/assets/avatars/female/8.jpg',
-    },
-    {
-      id: 9,
-      name: 'Dr. Mark Liu',
-      title: 'Cosmetic Dermatologist',
-      image: 'https://xsgames.co/randomusers/assets/avatars/male/9.jpg',
-    },
-  ],
-  // ...and so on for the other specialties
-};
-
 const DoctorSearch = () => {
-  // 3. Read the "specialty" param from the URL (if any)
   const { specialty } = useParams();
   const navigate = useNavigate();
-
-  // Add this near other state declarations
   const [searchQuery, setSearchQuery] = useState('');
-
-  // 4. Get doctors for the selected specialty
-  const doctors = specialty && doctorsData[specialty] ? doctorsData[specialty] : [];
-
+  const [loading, setLoading] = useState(false);
+  const [doctors, setDoctors] = useState([]);
+  const [featuredDoctors, setFeaturedDoctors] = useState([]);
+  const [error, setError] = useState(null);
+  
   // Animation variants
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -267,29 +52,126 @@ const DoctorSearch = () => {
     }
   };
 
+  // Fetch doctors based on specialty
+  useEffect(() => {
+    const fetchDoctors = async () => {
+      setLoading(true);
+      try {
+        let endpoint = 'http://localhost:3001/api/doctors';
+        
+        // If specialty is provided, add it as a query parameter
+        if (specialty) {
+          endpoint = `http://localhost:3001/api/patients/doctors/search?query=${specialty}`;
+        }
+        
+        const response = await axios.get(endpoint, {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('token')}`
+          }
+        });
+        
+        // Process the response based on whether it's a list of doctors or a search result
+        const doctorsData = specialty ? response.data.doctors : response.data;
+        
+        // Map backend data to match your frontend structure
+        const mappedDoctors = doctorsData.map(doctor => ({
+          id: doctor._id,
+          name: doctor.name || `Dr. ${doctor.userId?.firstName} ${doctor.userId?.lastName}`,
+          title: doctor.specialization || 'Specialist',
+          specialty: doctor.specialization,
+          image: doctor.userId?.profileImage || 'https://xsgames.co/randomusers/assets/avatars/male/1.jpg',
+          rating: 4.7, // Add default or calculate from reviews if available
+          experience: `${doctor.experience || 5}+ years`,
+          specialization: doctor.specialization,
+          contactNumber: doctor.contactNumber,
+          qualification: doctor.qualification,
+          // You might need to transform availability data to match your UI expectations
+          sessions: doctor.availability?.map(slot => ({
+            date: new Date(slot.date).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }),
+            time: slot.startTime,
+            appointments: 10, // This could be calculated or fetched from another endpoint
+            status: slot.isAvailable ? 'AVAILABLE' : 'FULL',
+            location: 'Main Hospital' // You might need to add hospital info to your backend
+          })) || []
+        }));
+        
+        if (specialty) {
+          setDoctors(mappedDoctors);
+        } else {
+          // For the homepage, set the first 3 doctors as featured
+          setFeaturedDoctors(mappedDoctors.slice(0, 3));
+        }
+      } catch (err) {
+        console.error('Error fetching doctors:', err);
+        setError('Failed to fetch doctors. Please try again later.');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchDoctors();
+  }, [specialty]);
+
+  // Function to handle search
+  useEffect(() => {
+    const searchDoctors = async () => {
+      if (!searchQuery) return;
+      
+      setLoading(true);
+      try {
+        const response = await axios.get(`http://localhost:3001/api/patient/doctors/search?query=${searchQuery}`, {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('token')}`
+          }
+        });
+        
+        const mappedDoctors = response.data.doctors.map(doctor => ({
+          id: doctor._id,
+          name: doctor.name || `Dr. ${doctor.userId?.firstName} ${doctor.userId?.lastName}`,
+          title: doctor.specialization || 'Specialist',
+          specialty: doctor.specialization,
+          image: doctor.userId?.profileImage || 'https://xsgames.co/randomusers/assets/avatars/male/1.jpg',
+          rating: 4.7,
+          experience: `${doctor.experience || 5}+ years`,
+          specialization: doctor.specialization,
+          contactNumber: doctor.contactNumber,
+          qualification: doctor.qualification,
+          sessions: doctor.availability?.map(slot => ({
+            date: new Date(slot.date).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }),
+            time: slot.startTime,
+            appointments: 10,
+            status: slot.isAvailable ? 'AVAILABLE' : 'FULL',
+            location: 'Main Hospital'
+          })) || []
+        }));
+        
+        setDoctors(mappedDoctors);
+      } catch (err) {
+        console.error('Error searching doctors:', err);
+        setError('Failed to search doctors. Please try again later.');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    // Debounce search to avoid too many requests
+    const debounceTimeout = setTimeout(() => {
+      if (searchQuery) {
+        searchDoctors();
+      }
+    }, 500);
+
+    return () => clearTimeout(debounceTimeout);
+  }, [searchQuery]);
+
   const handleViewProfile = (doctor) => {
     navigate('/doctor-availability', { state: { doctor } });
   };
 
-  // Add this function before the return statement
   const filteredDoctors = () => {
-    let results = specialty ? doctors : featuredDoctors;
-    if (searchQuery) {
-      const query = searchQuery.toLowerCase();
-      return results.filter(doc => 
-        doc.name.toLowerCase().includes(query) ||
-        (doc.specialty && doc.specialty.toLowerCase().includes(query)) ||
-        doc.title.toLowerCase().includes(query) ||
-        // Also search in specialization field if it exists
-        (doc.specialization && doc.specialization.toLowerCase().includes(query)) ||
-        // Search in the doctor's full specialty name from specialties array
-        specialties.some(spec => 
-          spec.name.toLowerCase().includes(query) && 
-          (doc.specialty === spec.id || doc.specialty === spec.name)
-        )
-      );
-    }
-    return results;
+    // If we're on a specialty page or searching, use the doctors state
+    // otherwise use the featured doctors for the homepage
+    return specialty || searchQuery ? doctors : featuredDoctors;
   };
 
   return (
@@ -376,8 +258,15 @@ const DoctorSearch = () => {
             Select a specialty from the left menu to see the doctors.
           </p>
 
-          {/* Show doctors if a specialty is selected */}
-          {specialty && filteredDoctors().length > 0 ? (
+          {loading ? (
+            <div className="flex justify-center items-center h-64">
+              <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-indigo-500"></div>
+            </div>
+          ) : error ? (
+            <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
+              <p>{error}</p>
+            </div>
+          ) : filteredDoctors().length > 0 ? (
             <motion.div 
               variants={containerVariants}
               initial="hidden"
@@ -403,7 +292,7 @@ const DoctorSearch = () => {
                     <div>
                       <h3 className="text-lg font-bold text-gray-800">{doc.name}</h3>
                       <p className="text-sm text-gray-600">{doc.title}</p>
-                      <p className="text-sm text-indigo-600">{doc.specialty || specialty}</p>
+                      <p className="text-sm text-indigo-600">{doc.specialty}</p>
                     </div>
                   </div>
                   <div className="mb-4">
@@ -412,6 +301,9 @@ const DoctorSearch = () => {
                     </p>
                     <p className="text-sm text-gray-600">
                       <span className="font-semibold">Specialization:</span> {doc.specialization || doc.title}
+                    </p>
+                    <p className="text-sm text-gray-600">
+                      <span className="font-semibold">Qualification:</span> {doc.qualification || 'MD'}
                     </p>
                     <p className="text-sm text-gray-600">
                       <span className="font-semibold">Rating:</span>{' '}
@@ -428,7 +320,7 @@ const DoctorSearch = () => {
                 </motion.div>
               ))}
             </motion.div>
-          ) : specialty || searchQuery ? (
+          ) : (
             <motion.p
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -436,69 +328,6 @@ const DoctorSearch = () => {
             >
               No doctors found matching your search criteria.
             </motion.p>
-          ) : (
-            // New featured doctors section
-            <motion.div
-              variants={containerVariants}
-              initial="hidden"
-              animate="visible"
-            >
-              <motion.h2 
-                initial={{ opacity: 0, y: -20 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="text-2xl font-bold text-gray-800 mb-6"
-              >
-                Featured Doctors
-              </motion.h2>
-              <motion.div 
-                variants={containerVariants}
-                className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6"
-              >
-                {filteredDoctors().map((doc) => (
-                  <motion.div
-                    key={doc.id}
-                    variants={cardVariants}
-                    whileHover={{ 
-                      scale: 1.02,
-                      transition: { duration: 0.2 }
-                    }}
-                    className="border rounded-lg p-6 shadow-md hover:shadow-lg transition-all duration-300 bg-white"
-                  >
-                    <div className="flex items-center mb-4">
-                      <img
-                        src={doc.image}
-                        alt={doc.name}
-                        className="w-20 h-20 rounded-full object-cover mr-4"
-                      />
-                      <div>
-                        <h3 className="text-lg font-bold text-gray-800">{doc.name}</h3>
-                        <p className="text-sm text-gray-600">{doc.title}</p>
-                        <p className="text-sm text-indigo-600">{doc.specialty}</p>
-                      </div>
-                    </div>
-                    <div className="mb-4">
-                      <p className="text-sm text-gray-600">
-                        <span className="font-semibold">Experience:</span> {doc.experience}
-                      </p>
-                      <p className="text-sm text-gray-600">
-                        <span className="font-semibold">Specialization:</span> {doc.specialization}
-                      </p>
-                      <p className="text-sm text-gray-600">
-                        <span className="font-semibold">Rating:</span>{' '}
-                        <span className="text-yellow-500">★</span> {doc.rating}
-                      </p>
-                    </div>
-                    <motion.button 
-                      whileTap={{ scale: 0.95 }}
-                      onClick={() => handleViewProfile(doc)}
-                      className="w-full bg-indigo-600 text-white py-2 px-4 rounded-md hover:bg-indigo-700 transition-colors duration-300"
-                    >
-                      View Profile & Availability
-                    </motion.button>
-                  </motion.div>
-                ))}
-              </motion.div>
-            </motion.div>
           )}
         </motion.main>
       </div>
