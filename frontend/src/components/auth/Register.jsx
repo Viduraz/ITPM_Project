@@ -357,7 +357,7 @@ const Register = () => {
                     exit="exit"
                     className="space-y-4"
                   >
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <motion.div 
                         variants={itemVariants} 
                         className="transform transition-all duration-300 hover:scale-[1.02] focus-within:scale-[1.02]"
