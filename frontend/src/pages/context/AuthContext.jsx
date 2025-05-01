@@ -39,15 +39,14 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Check if user is already logged in
+  // This runs on app initialization
   useEffect(() => {
     const checkAuth = async () => {
       const token = localStorage.getItem('token');
       if (token) {
         try {
-          // Try to get user data with the stored token
           api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-          const response = await api.get('/api/auth/me');
+          const response = await api.get('/api/auth/me'); // This endpoint is missing
           setUser(response.data);
         } catch (error) {
           console.error('Auth verification failed:', error);

@@ -256,3 +256,39 @@ export const registerDataEntry = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+
+// Get current logged-in user
+export const getMe = async (req, res) => {
+  try {
+    const user = await User.findById(req.user._id).select('-password');
+    
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    // Get profile data based on role
+    let profileData = null;
+    if (user.role === 'dataentry') {
+      profileData = await DataEntry.findOne({ userId: user._id });
+    } else if (user.role === 'doctor') {
+      profileData = await Doctor.findOne({ userId: user._id });
+    } else if (user.role === 'patient') {
+      profileData = await Patient.findOne({ userId: user._id });
+    } else if (user.role === 'pharmacy') {
+      profileData = await Pharmacy.findOne({ userId: user._id });
+    } else if (user.role === 'laboratory') {
+      profileData = await Laboratory.findOne({ userId: user._id });
+    }
+
+    res.status(200).json({
+      id: user._id,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      email: user.email,
+      role: user.role,
+      profile: profileData
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
