@@ -2,27 +2,30 @@ import { pool } from "../models/MySqlDB.js";
 
 export async function getPosSummary(req, res, next) {
   try {
-    // total medicines sold
-    const [soldRows] = await pool.query(
-      `SELECT IFNULL(SUM(quantity),0) AS totalSold
-       FROM order_items`
-    );
-    // total invoices
-    const [invRows] = await pool.query(
-      `SELECT COUNT(*) AS totalInvoices
-       FROM invoices`
-    );
-    // optional: total revenue
-    const [revRows] = await pool.query(
-      `SELECT IFNULL(SUM(amount),0) AS totalRevenue
-       FROM invoices`
+    // total sales
+    const [salesRows] = await pool.query(`SELECT * FROM sales`);
+
+    res.json(salesRows);
+  } catch (err) {
+    next(err);
+  }
+}
+
+export async function getCustomerSummary(req, res, next) {
+  try {
+    const customerId = req.params.id;
+
+    // Get customer information
+    const [customerRows] = await pool.query(
+      `SELECT * FROM customers WHERE id = ?`,
+      [customerId] // Pass the parameter value to the query
     );
 
-    res.json({
-      totalSold:     soldRows[0].totalSold,
-      totalInvoices: invRows[0].totalInvoices,
-      totalRevenue:  revRows[0].totalRevenue,
-    });
+    if (customerRows.length === 0) {
+      return res.status(404).json({ message: "Customer not found" });
+    }
+
+    res.json(customerRows[0]);
   } catch (err) {
     next(err);
   }
