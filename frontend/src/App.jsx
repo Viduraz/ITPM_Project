@@ -19,9 +19,12 @@ import MedicalHistory from './pages/patient/MedicalHistory';
 import DoctorSearch from './pages/patient/DoctorSearch';
 
 import DoctorDashboard from './pages/doctor/DoctorDashboard';
+import DoctorProfile from './pages/doctor/DoctorProfile';
+import DoctorAvailability from './pages/Patient/DoctorAvailability';
 import PatientManagement from './pages/doctor/PatientManagement';
 import DiagnosisForm from './pages/doctor/DiagnosisForm';
 import PrescriptionForm from './pages/doctor/PrescriptionForm';
+import ReportGeneration from './pages/doctor/ReportGeneration';
 
 import PharmacyDashboard from './pages/pharmacy/PharmacyDashboard';
 import PrescriptionVerification from './pages/pharmacy/PrescriptionVerification';
@@ -183,6 +186,11 @@ function App() {
               <DashboardLayout>
                 <DoctorAvailability />
               </DashboardLayout>
+            </ProtectedRoute>
+          } />
+          <Route path="/doctor/report-generation" element={
+            <ProtectedRoute allowedRoles={['doctor']}>
+              <ReportGeneration />
             </ProtectedRoute>
           } />
           
