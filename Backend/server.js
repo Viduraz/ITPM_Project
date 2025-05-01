@@ -35,7 +35,7 @@ connectDB();
 
 // Routes
 app.use('/api/auth', authRoutes);
-app.use('/api/doctor', doctorRoutes);
+app.use('/api/doctors', doctorRoutes);
 app.use('/api/patient', patientRoutes);
 app.use('/api/pharmacy', pharmacyRoutes);
 app.use('/api/laboratory', laboratoryRoutes);

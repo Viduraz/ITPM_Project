@@ -1,40 +1,79 @@
 import mongoose from 'mongoose';
+import bcrypt from 'bcryptjs';
+
+const availabilitySchema = new mongoose.Schema({
+  date: {
+    type: Date,
+    required: true
+  },
+  startTime: {
+    type: String,
+    required: true
+  },
+  endTime: {
+    type: String,
+    required: true
+  },
+  isAvailable: {
+    type: Boolean,
+    default: true
+  }
+});
 
 const doctorSchema = new mongoose.Schema({
-  userId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'User',
-    required: true
+  name: {
+    type: String,
+    required: [true, 'Name is required']
+  },
+  email: {
+    type: String,
+    required: [true, 'Email is required'],
+    unique: true,
+    match: [/^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/, 'Please provide a valid email']
+  },
+  password: {
+    type: String,
+    required: [true, 'Password is required'],
+    minlength: 6,
+    select: false
   },
   specialization: {
     type: String,
-    required: true
+    required: [true, 'Specialization is required']
   },
-  licenseNumber: {
+  contactNumber: {
     type: String,
-    required: true,
-    unique: true
+    required: [true, 'Contact number is required']
   },
-  hospitalAffiliations: [{
-    hospital: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'Hospital'
-    },
-    isAvailableToday: {
-      type: Boolean,
-      default: false
-    }
-  }],
+  qualification: {
+    type: String,
+    required: [true, 'Qualification is required']
+  },
   experience: {
-    type: Number,  // In years
-    default: 0
+    type: Number,
+    required: [true, 'Experience is required']
   },
-  qualifications: [{
-    degree: String,
-    institution: String,
-    year: Number
-  }]
-}, { timestamps: true });
+  availability: [availabilitySchema],
+  createdAt: {
+    type: Date,
+    default: Date.now
+  }
+});
+
+// Encrypt password using bcrypt
+doctorSchema.pre('save', async function(next) {
+  if (!this.isModified('password')) {
+    next();
+  }
+  
+  const salt = await bcrypt.genSalt(10);
+  this.password = await bcrypt.hash(this.password, salt);
+});
+
+// Match user entered password to hashed password in database
+doctorSchema.methods.matchPassword = async function(enteredPassword) {
+  return await bcrypt.compare(enteredPassword, this.password);
+};
 
 const Doctor = mongoose.model('Doctor', doctorSchema);
 
