@@ -2,8 +2,10 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { 
   FaShoppingCart, FaMoneyBillWave, FaCalendarAlt, FaBoxOpen, FaChartLine, 
-  FaArrowUp, FaClipboardList, FaPercentage, FaUsers, FaPills 
+  FaArrowUp, FaClipboardList, FaPercentage, FaUsers, FaPills, FaFilePdf, FaDownload 
 } from "react-icons/fa";
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
 
 const PharmacyDashboard = () => {
   const [salesData, setSalesData] = useState([]);
@@ -22,6 +24,68 @@ const PharmacyDashboard = () => {
     cashSalesPercentage: 0,
     averageItemsPerSale: 0
   });
+
+  // Function to generate and download PDF
+  const generatePDF = () => {
+    const doc = new jsPDF();
+    const pageWidth = doc.internal.pageSize.getWidth();
+    
+    // Add title
+    doc.setFontSize(18);
+    doc.setTextColor(40, 40, 40);
+    doc.text("Pharmacy Sales Report", pageWidth/2, 20, { align: 'center' });
+    
+    // Add date
+    doc.setFontSize(10);
+    doc.text(`Generated: ${new Date().toLocaleString()}`, pageWidth/2, 30, { align: 'center' });
+    
+    // Add summary statistics
+    doc.setFontSize(14);
+    doc.text("Sales Summary", 14, 45);
+    
+    // Sales stats as table
+    const statsData = [
+      ["Total Sales", salesStats.totalSales],
+      ["Total Revenue", `LKR ${salesStats.totalRevenue.toLocaleString()}`],
+      ["Average Sale", `LKR ${salesStats.averageSale.toLocaleString()}`],
+      ["Products Sold", salesStats.productCount],
+      ["Top Selling Product", summaryStats.topSellingProduct],
+      ["Total Discounts", `LKR ${summaryStats.totalDiscount.toLocaleString()}`],
+      ["Cash Payments", `${summaryStats.cashSalesPercentage.toFixed(1)}%`],
+      ["Average Items Per Sale", summaryStats.averageItemsPerSale.toFixed(1)]
+    ];
+    
+    // Use autoTable imported directly
+    autoTable(doc, {
+      startY: 50,
+      head: [["Metric", "Value"]],
+      body: statsData,
+      theme: 'grid',
+      headStyles: { fillColor: [75, 85, 175] }
+    });
+    
+    // Add product breakdown
+    doc.setFontSize(14);
+    doc.text("Product Sales Breakdown", 14, doc.lastAutoTable.finalY + 15);
+    
+    const productData = productBreakdown.map(product => [
+      product.code,
+      product.name,
+      product.count,
+      `LKR ${product.revenue.toLocaleString()}`
+    ]);
+    
+    autoTable(doc, {
+      startY: doc.lastAutoTable.finalY + 20,
+      head: [["Product Code", "Product Name", "Quantity Sold", "Revenue"]],
+      body: productData,
+      theme: 'grid',
+      headStyles: { fillColor: [75, 85, 175] }
+    });
+    
+    // Save the PDF
+    doc.save("pharmacy-sales-report.pdf");
+  };
 
   useEffect(() => {
     const fetchData = async () => {
@@ -123,8 +187,17 @@ const PharmacyDashboard = () => {
           <h2 className="text-3xl font-bold text-gray-800">Pharmacy Dashboard</h2>
           <p className="text-gray-600">Track your sales and inventory in real-time</p>
         </div>
-        <div className="bg-white p-2 rounded-lg shadow-sm">
-          <p className="text-sm text-gray-500">Last updated: {new Date().toLocaleString()}</p>
+        <div className="flex items-center gap-4">
+          <div className="bg-white p-2 rounded-lg shadow-sm">
+            <p className="text-sm text-gray-500">Last updated: {new Date().toLocaleString()}</p>
+          </div>
+          <button
+            onClick={generatePDF}
+            className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg flex items-center transition-all duration-300 hover:-translate-y-1 hover:shadow-lg"
+          >
+            <FaFilePdf className="mr-2" />
+            Download Report
+          </button>
         </div>
       </div>
       
