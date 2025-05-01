@@ -144,38 +144,6 @@ const DoctorAvailability = () => {
             </table>
           </div>
         </motion.div>
-
-        {/* Other Hospital Sessions - Right Column */}
-        <motion.div 
-          initial={{ x: 20, opacity: 0 }}
-          animate={{ x: 0, opacity: 1 }}
-          className="bg-white rounded-lg shadow-lg p-6"
-        >
-          <h2 className="text-xl font-semibold text-gray-800 mb-4 flex items-center">
-            <span className="bg-blue-100 p-2 rounded-full mr-2">🏥</span>
-            Other Hospital Sessions
-          </h2>
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Location
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {doctor.otherLocations?.map((location, index) => (
-                  <tr key={index} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {location}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </motion.div>
       </div>
 
       {/* Existing Reviews Section */}

@@ -1,31 +1,31 @@
 // src/pages/patient/DoctorSearch.jsx
 import React, { useState, useEffect } from 'react';
-import { Link, useParams, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import axios from 'axios';
 
-// Keep your specialties list
-const specialties = [
-  { id: 'anesthesiology', name: 'Anesthesiology & Reanimation' },
-  { id: 'dentistry',       name: 'Dentistry' },
-  { id: 'dermatology',     name: 'Dermatology' },
-  { id: 'ent',             name: 'Ear-Nose-Throat / Audiology' },
-  { id: 'internal-med',    name: 'Internal Medicine' },
-  { id: 'obgyn',           name: 'Obstetrics and Gynecology' },
-  { id: 'orthopedics',     name: 'Orthopedics and Traumatology' },
-  { id: 'pediatrics',      name: 'Pediatrics' },
-  { id: 'radiology',       name: 'Radiology' },
-  { id: 'urology',         name: 'Urology' },
-];
-
 const DoctorSearch = () => {
-  const { specialty } = useParams();
   const navigate = useNavigate();
-  const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(false);
   const [doctors, setDoctors] = useState([]);
-  const [featuredDoctors, setFeaturedDoctors] = useState([]);
   const [error, setError] = useState(null);
+  const [selectedSpecialty, setSelectedSpecialty] = useState('');
+  // Add new state for search
+  const [searchTerm, setSearchTerm] = useState('');
+  
+  // List of specialties for filtering
+  const specialties = [
+    'Cardiology',
+    'Dentistry',
+    'Neurology',
+    'Orthopedics',
+    'Pediatrics',
+    'Psychiatry',
+    'Oncology',
+    'Gynecology',
+    'Urology',
+    'Ophthalmology'
+  ];
   
   // Animation variants
   const containerVariants = {
@@ -52,17 +52,12 @@ const DoctorSearch = () => {
     }
   };
 
-  // Fetch doctors based on specialty
+  // Fetch all doctors on component mount
   useEffect(() => {
     const fetchDoctors = async () => {
       setLoading(true);
       try {
-        let endpoint = 'http://localhost:3001/api/doctors';
-        
-        // If specialty is provided, add it as a query parameter
-        if (specialty) {
-          endpoint = `http://localhost:3001/api/patients/doctors/search?query=${specialty}`;
-        }
+        let endpoint = 'http://localhost:3000/api/doctors';
         
         const response = await axios.get(endpoint, {
           headers: {
@@ -70,62 +65,8 @@ const DoctorSearch = () => {
           }
         });
         
-        // Process the response based on whether it's a list of doctors or a search result
-        const doctorsData = specialty ? response.data.doctors : response.data;
-        
         // Map backend data to match your frontend structure
-        const mappedDoctors = doctorsData.map(doctor => ({
-          id: doctor._id,
-          name: doctor.name || `Dr. ${doctor.userId?.firstName} ${doctor.userId?.lastName}`,
-          title: doctor.specialization || 'Specialist',
-          specialty: doctor.specialization,
-          image: doctor.userId?.profileImage || 'https://xsgames.co/randomusers/assets/avatars/male/1.jpg',
-          rating: 4.7, // Add default or calculate from reviews if available
-          experience: `${doctor.experience || 5}+ years`,
-          specialization: doctor.specialization,
-          contactNumber: doctor.contactNumber,
-          qualification: doctor.qualification,
-          // You might need to transform availability data to match your UI expectations
-          sessions: doctor.availability?.map(slot => ({
-            date: new Date(slot.date).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }),
-            time: slot.startTime,
-            appointments: 10, // This could be calculated or fetched from another endpoint
-            status: slot.isAvailable ? 'AVAILABLE' : 'FULL',
-            location: 'Main Hospital' // You might need to add hospital info to your backend
-          })) || []
-        }));
-        
-        if (specialty) {
-          setDoctors(mappedDoctors);
-        } else {
-          // For the homepage, set the first 3 doctors as featured
-          setFeaturedDoctors(mappedDoctors.slice(0, 3));
-        }
-      } catch (err) {
-        console.error('Error fetching doctors:', err);
-        setError('Failed to fetch doctors. Please try again later.');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchDoctors();
-  }, [specialty]);
-
-  // Function to handle search
-  useEffect(() => {
-    const searchDoctors = async () => {
-      if (!searchQuery) return;
-      
-      setLoading(true);
-      try {
-        const response = await axios.get(`http://localhost:3001/api/patient/doctors/search?query=${searchQuery}`, {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem('token')}`
-          }
-        });
-        
-        const mappedDoctors = response.data.doctors.map(doctor => ({
+        const mappedDoctors = response.data.map(doctor => ({
           id: doctor._id,
           name: doctor.name || `Dr. ${doctor.userId?.firstName} ${doctor.userId?.lastName}`,
           title: doctor.specialization || 'Specialist',
@@ -147,31 +88,43 @@ const DoctorSearch = () => {
         
         setDoctors(mappedDoctors);
       } catch (err) {
-        console.error('Error searching doctors:', err);
-        setError('Failed to search doctors. Please try again later.');
+        console.error('Error fetching doctors:', err);
+        setError('Failed to fetch doctors. Please try again later.');
       } finally {
         setLoading(false);
       }
     };
 
-    // Debounce search to avoid too many requests
-    const debounceTimeout = setTimeout(() => {
-      if (searchQuery) {
-        searchDoctors();
-      }
-    }, 500);
-
-    return () => clearTimeout(debounceTimeout);
-  }, [searchQuery]);
+    fetchDoctors();
+  }, []);
 
   const handleViewProfile = (doctor) => {
     navigate('/doctor-availability', { state: { doctor } });
   };
 
+  const handleSpecialtyChange = (specialty) => {
+    setSelectedSpecialty(specialty === selectedSpecialty ? '' : specialty);
+  };
+
+  // Update the filteredDoctors function to include name search
   const filteredDoctors = () => {
-    // If we're on a specialty page or searching, use the doctors state
-    // otherwise use the featured doctors for the homepage
-    return specialty || searchQuery ? doctors : featuredDoctors;
+    return doctors.filter(doctor => {
+      const matchesSpecialty = selectedSpecialty 
+        ? doctor.specialization && doctor.specialization.toLowerCase() === selectedSpecialty.toLowerCase()
+        : true;
+        
+      const matchesSearch = searchTerm
+        ? doctor.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          (doctor.specialization && doctor.specialization.toLowerCase().includes(searchTerm.toLowerCase()))
+        : true;
+        
+      return matchesSpecialty && matchesSearch;
+    });
+  };
+
+  // Add handler for search input
+  const handleSearchChange = (e) => {
+    setSearchTerm(e.target.value);
   };
 
   return (
@@ -180,7 +133,7 @@ const DoctorSearch = () => {
       animate={{ opacity: 1 }}
       className="min-h-screen bg-gray-50"
     >
-      <header className="bg-purple-200 shadow p-4">
+      <header className="bg-purple-200 shadow p-6">
         <div className="max-w-7xl mx-auto">
           <motion.h1 
             initial={{ y: -20 }}
@@ -189,73 +142,90 @@ const DoctorSearch = () => {
           >
             Our Healthcare Professionals
           </motion.h1>
-          
-          <motion.div 
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="relative max-w-2xl"
-          >
-            <input
-              type="text"
-              placeholder="Search by doctor name or specialty (e.g. Dr. Smith, Cardiology)"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full px-4 py-3 pl-12 pr-4 text-gray-700 bg-white border rounded-lg focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 shadow-sm"
-            />
-            <svg
-              className="absolute left-4 top-3.5 h-5 w-5 text-gray-400"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="2"
-                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-              />
-            </svg>
-          </motion.div>
         </div>
       </header>
 
-      <div className="max-w-7xl mx-auto p-4 mt-6 flex">
-        <motion.aside 
-          initial={{ x: -50 }}
-          animate={{ x: 0 }}
+      <div className="max-w-7xl mx-auto p-6 mt-6">
+        {/* Search Section - New Addition */}
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
-          className="w-1/4 mr-6 bg-white shadow rounded p-4"
+          className="bg-white shadow rounded-lg p-6 mb-6"
         >
-          <h2 className="text-lg font-semibold text-gray-700 mb-4">
-            Specialties
-          </h2>
-          <ul className="space-y-2">
-            {specialties.map((spec) => (
-              <li key={spec.id}>
-                <Link
-                  to={`/doctor-search/${spec.id}`}
-                  className={`block px-2 py-1 rounded hover:bg-gray-100 ${
-                    specialty === spec.id ? 'bg-gray-200 font-semibold' : ''
-                  }`}
-                >
-                  {spec.name}
-                </Link>
-              </li>
+          <h2 className="text-lg font-semibold text-gray-800 mb-4">Find a Doctor</h2>
+          <div className="flex flex-col md:flex-row gap-4">
+            <div className="flex-1">
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <svg className="h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clipRule="evenodd" />
+                  </svg>
+                </div>
+                <input
+                  type="text"
+                  placeholder="Search by doctor name or specialty..."
+                  value={searchTerm}
+                  onChange={handleSearchChange}
+                  className="pl-10 w-full py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                />
+              </div>
+            </div>
+            {searchTerm && (
+              <button
+                onClick={() => setSearchTerm('')}
+                className="md:self-end px-4 py-2 bg-red-100 text-red-800 rounded-md hover:bg-red-200 transition-colors duration-200 whitespace-nowrap"
+              >
+                Clear Search
+              </button>
+            )}
+          </div>
+        </motion.div>
+
+        {/* Specialties Filter Section */}
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          className="bg-white shadow rounded-lg p-6 mb-6"
+        >
+          <h2 className="text-lg font-semibold text-gray-800 mb-4">Filter by Specialty</h2>
+          <div className="flex flex-wrap gap-2">
+            {specialties.map((specialty) => (
+              <button
+                key={specialty}
+                onClick={() => handleSpecialtyChange(specialty)}
+                className={`px-4 py-2 rounded-full text-sm font-medium transition-colors duration-200 ${
+                  selectedSpecialty === specialty
+                    ? 'bg-indigo-600 text-white'
+                    : 'bg-gray-100 text-gray-800 hover:bg-gray-200'
+                }`}
+              >
+                {specialty}
+              </button>
             ))}
-          </ul>
-        </motion.aside>
+            {selectedSpecialty && (
+              <button
+                onClick={() => setSelectedSpecialty('')}
+                className="px-4 py-2 rounded-full text-sm font-medium bg-red-100 text-red-800 hover:bg-red-200 transition-colors duration-200"
+              >
+                Clear Filter
+              </button>
+            )}
+          </div>
+        </motion.div>
 
         <motion.main 
-          initial={{ x: 50 }}
-          animate={{ x: 0 }}
+          initial={{ y: 20 }}
+          animate={{ y: 0 }}
           transition={{ duration: 0.5 }}
-          className="flex-1 bg-white shadow rounded p-6"
+          className="bg-white shadow rounded p-6"
         >
           <h2 className="text-xl font-semibold text-gray-800 mb-2">
             Our highly skilled medical team
           </h2>
           <p className="text-sm text-gray-600 mb-6">
-            Select a specialty from the left menu to see the doctors.
+            Browse our list of professional doctors and book an appointment today.
           </p>
 
           {loading ? (
@@ -321,13 +291,28 @@ const DoctorSearch = () => {
               ))}
             </motion.div>
           ) : (
-            <motion.p
+            <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              className="text-gray-500"
+              className="flex flex-col items-center justify-center py-12"
             >
-              No doctors found matching your search criteria.
-            </motion.p>
+              <svg className="w-16 h-16 text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+              </svg>
+              <p className="text-gray-500 text-center">
+                {selectedSpecialty
+                  ? `No doctors found with specialty: ${selectedSpecialty}`
+                  : 'No doctors found matching your search criteria.'}
+              </p>
+              {selectedSpecialty && (
+                <button
+                  onClick={() => setSelectedSpecialty('')}
+                  className="mt-4 px-4 py-2 bg-indigo-100 text-indigo-700 rounded-md hover:bg-indigo-200"
+                >
+                  Clear specialty filter
+                </button>
+              )}
+            </motion.div>
           )}
         </motion.main>
       </div>

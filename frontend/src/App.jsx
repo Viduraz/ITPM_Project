@@ -239,7 +239,7 @@ function App() {
               </ProtectedRoute>
             }
           />
-          {/* <Route
+          <Route
             path="/doctor-availability"
             element={
               <ProtectedRoute allowedRoles={["patient", "admin"]}>
@@ -248,7 +248,7 @@ function App() {
                 </DashboardLayout>
               </ProtectedRoute>
             }
-          /> */}
+          />
           <Route
             path="/doctor/report-generation"
             element={
