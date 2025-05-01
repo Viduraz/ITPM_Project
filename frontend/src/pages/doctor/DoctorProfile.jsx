@@ -241,7 +241,7 @@ const DoctorProfile = () => {
       <header className="bg-white shadow-md">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
           <button
-            onClick={() => navigate("/")}
+            onClick={() => navigate("/doctor/dashboard")}
             className="text-indigo-600 hover:text-indigo-800 font-medium flex items-center"
           >
             <svg

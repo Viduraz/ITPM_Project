@@ -65,7 +65,7 @@ const ProtectedRoute = ({ children, allowedRoles }) => {
   if (allowedRoles && !allowedRoles.includes(user.role)) {
     // Redirect to role-specific dashboard if authenticated but wrong role
     if (user.role === "patient") return <Navigate to="/patient/dashboard" />;
-    // if (user.role === "doctor") return <Navigate to="/doctor/dashboard" />;
+    if (user.role === "doctor") return <Navigate to="/doctor/dashboard" />;
     if (user.role === "pharmacy") return <Navigate to="/pharmacy/dashboard" />;
     if (user.role === "laboratory")
       return <Navigate to="/laboratory/dashboard" />;
@@ -239,7 +239,7 @@ function App() {
               </ProtectedRoute>
             }
           />
-          <Route
+          {/* <Route
             path="/doctor-availability"
             element={
               <ProtectedRoute allowedRoles={["patient", "admin"]}>
@@ -248,7 +248,7 @@ function App() {
                 </DashboardLayout>
               </ProtectedRoute>
             }
-          />
+          /> */}
           <Route
             path="/doctor/report-generation"
             element={
