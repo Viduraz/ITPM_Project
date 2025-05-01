@@ -1,168 +1,178 @@
-import React from "react";
-import { FaUserCircle } from "react-icons/fa";
-import PatientPrescriptionDisplay from './PatientPrescriptionDisplay'; // <-- ✅ Import here
+import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
+import { useAuth } from '../../pages/context/AuthContext';
+import { FaClipboardList, FaPrescriptionBottleAlt, FaUserInjured, FaSearch, FaColumns, FaNotesMedical } from 'react-icons/fa';
 
+function DataEntryDashboard() {
+  const { user } = useAuth();
+  const [isLoading, setIsLoading] = useState(true);
+  const [taskData, setTaskData] = useState(null);
 
-const DataEntryDashboard = () => {
+  // Simulated data - in a real app, fetch from API
+  useEffect(() => {
+    setTimeout(() => {
+      setTaskData({
+        pendingEntries: [
+          { id: "p1", patientName: "John Smith", documentType: "Lab Results", receivedDate: "April 14, 2023" },
+          { id: "p2", patientName: "Maria Garcia", documentType: "Diagnosis", receivedDate: "April 14, 2023" },
+          { id: "p3", patientName: "Robert Chen", documentType: "Prescription", receivedDate: "April 13, 2023" }
+        ],
+        recentlyCompleted: [
+          { id: "r1", patientName: "Emma Wilson", documentType: "Lab Results", entryDate: "April 12, 2023" },
+          { id: "r2", patientName: "James Brown", documentType: "Diagnosis", entryDate: "April 11, 2023" }
+        ],
+        stats: {
+          totalPending: 8,
+          completedToday: 5,
+          pendingUrgent: 2
+        }
+      });
+      setIsLoading(false);
+    }, 1000);
+  }, []);
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-96">
+        <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-indigo-600"></div>
+      </div>
+    );
+  }
+
   return (
-    <div className="w-full">
-      {/* Main Content */}
-      <div className="flex-1">
-        {/* Header */}
-        <header className="bg-blue-700 text-white p-8 rounded-lg shadow-xl flex justify-between items-center mb-8">
-          <div className="w-full">
-            <h1 className="text-3xl font-semibold mb-3">Good Day, Data Entry!</h1>
-            <p className="text-lg">
-              {new Intl.DateTimeFormat("en-US", {
-                weekday: "long",
-                year: "numeric",
-                month: "long",
-                day: "numeric",
-              }).format(new Date())}
-              ,{" "}
-              {new Date().toLocaleTimeString([], {
-                hour: "2-digit",
-                minute: "2-digit",
-              })}
+    <div className="pb-8">
+      {/* Header Section */}
+      <div className="bg-gradient-to-r from-blue-600 to-blue-400 text-white p-6 rounded-lg shadow-md mb-6">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+          <div>
+            <h1 className="text-2xl md:text-3xl font-bold">Welcome, {user?.firstName || 'Data Entry Operator'}!</h1>
+            <p className="mt-2">
+              {new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
             </p>
+          </div>
+          <div className="flex flex-col md:flex-row gap-3">
+            <Link 
+              to="/dataentry/patientdiagnosis" 
+              className="bg-white text-blue-600 font-medium px-4 py-2 rounded-md hover:bg-gray-100 transition flex items-center gap-2"
+            >
+              <FaNotesMedical /> New Diagnosis
+            </Link>
+            <Link 
+              to="/dataentry/patientprescriptions" 
+              className="bg-blue-700 text-white font-medium px-4 py-2 rounded-md hover:bg-blue-800 transition flex items-center gap-2"
+            >
+              <FaPrescriptionBottleAlt /> New Prescription
+            </Link>
+          </div>
+        </div>
+      </div>
 
-
-
+      {/* Stats Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+        <div className="bg-white p-4 rounded-lg shadow-md border-l-4 border-blue-500">
+          <div className="flex items-center gap-3">
+            <div className="bg-blue-100 p-3 rounded-full">
+              <FaClipboardList className="text-blue-600 text-xl" />
+            </div>
+            <div>
+              <h3 className="text-gray-500 text-sm">Pending Entries</h3>
+              <p className="text-xl font-semibold">{taskData.stats.totalPending}</p>
+            </div>
+          </div>
+        </div>
+        
+        <div className="bg-white p-4 rounded-lg shadow-md border-l-4 border-green-500">
+          <div className="flex items-center gap-3">
+            <div className="bg-green-100 p-3 rounded-full">
+              <FaColumns className="text-green-600 text-xl" />
+            </div>
+            <div>
+              <h3 className="text-gray-500 text-sm">Completed Today</h3>
+              <p className="text-xl font-semibold">{taskData.stats.completedToday}</p>
+            </div>
+          </div>
+        </div>
+        
+        <div className="bg-white p-4 rounded-lg shadow-md border-l-4 border-red-500">
+          <div className="flex items-center gap-3">
+            <div className="bg-red-100 p-3 rounded-full">
+              <FaUserInjured className="text-red-600 text-xl" />
+            </div>
+            <div>
+              <h3 className="text-gray-500 text-sm">Urgent Pending</h3>
+              <p className="text-xl font-semibold">{taskData.stats.pendingUrgent}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      {/* Search Bar */}
+      <div className="bg-white p-4 rounded-lg shadow-md mb-6">
+        <div className="relative">
+          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+            <FaSearch className="text-gray-400" />
+          </div>
+          <input
+            type="text"
+            className="pl-10 w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            placeholder="Search for patient records..."
+          />
+        </div>
+      </div>
+      
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Pending Entries */}
+        <div className="bg-white rounded-lg shadow-md p-6">
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-xl font-bold text-gray-800">Pending Data Entries</h2>
+            <Link to="/dataentry/pending" className="text-blue-600 hover:text-blue-800 text-sm font-medium">
+              View All
+            </Link>
           </div>
           
-          <span className="text-lg font-medium">Have a productive workday!</span>
-
-        </header>
-
-        {/* Dashboard Body */}
-        <div className="bg-white border border-blue-400 p-8 rounded-lg shadow-lg mb-8">
-          <h2 className="text-2xl font-semibold text-gray-800 mb-6">Dashboard Overview</h2>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {/* Total Records Card */}
-            <div className="bg-gray-100 p-6 rounded-lg shadow-lg flex flex-col items-center justify-center">
-              <h3 className="text-xl font-semibold text-gray-700 mb-2">Total Records</h3>
-              <p className="text-4xl font-bold text-indigo-600">125</p>
-            </div>
-
-            {/* Pending Entries Card */}
-            <div className="bg-gray-100 p-6 rounded-lg shadow-lg flex flex-col items-center justify-center">
-              <h3 className="text-xl font-semibold text-gray-700 mb-2">Pending Entries</h3>
-              <p className="text-4xl font-bold text-yellow-600">10</p>
-            </div>
-
-            {/* Completed Entries Card */}
-            <div className="bg-gray-100 p-6 rounded-lg shadow-lg flex flex-col items-center justify-center">
-              <h3 className="text-xl font-semibold text-gray-700 mb-2">Completed Entries</h3>
-              <p className="text-4xl font-bold text-green-600">115</p>
-            </div>
-          </div>
-
-
-        </div>
-
-        {/* Profile & Calendar Section */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-8">
-          {/* Profile Card */}
-          <div className="bg-white p-8 rounded-lg shadow-lg">
-            <h3 className="text-xl font-semibold text-gray-700 mb-4">Profile</h3>
-            <div className="flex items-center gap-6">
-              <FaUserCircle className="w-20 h-20 text-blue-500" />
-              <div>
-                <p className="text-2xl font-semibold">John Doe</p>
-                <p className="text-lg text-gray-600">Data Entry Specialist</p>
-                <div className="text-sm text-gray-500 mt-2">
-                  <p>📍 Location: Berlin, Germany</p>
-                  <p>📧 Email: johndoe@example.com</p>
-                  <p>📞 Phone: +49 123 456 789</p>
+          <div className="space-y-4">
+            {taskData.pendingEntries.map(entry => (
+              <div key={entry.id} className="border-b pb-3 last:border-0">
+                <div className="flex justify-between">
+                  <h3 className="font-medium">{entry.patientName}</h3>
+                  <span className="text-sm text-gray-500">{entry.receivedDate}</span>
                 </div>
-              </div>
-            </div>
-
-            {/* Additional Profile Info */}
-            <div className="mt-6 border-t pt-6">
-              <p className="text-sm text-gray-600">🕒 Working Hours: 9 AM - 5 PM</p>
-              <p className="text-sm text-gray-600">📅 Joined: Jan 10, 2023</p>
-              <p className="text-sm text-gray-600">✅ Accuracy Rate: 98%</p>
-              <p className="text-sm text-gray-600">📄 Total Entries: 5,432</p>
-            </div>
-          </div>
-
-          {/* Meeting List Card */}
-          <div className="bg-white p-8 rounded-lg shadow-lg">
-            <h3 className="text-xl font-semibold text-gray-700 mb-4">Upcoming Meetings</h3>
-
-            {/* Meeting List */}
-            <div className="space-y-6">
-              {/* Meeting 1 */}
-              <div className="flex justify-between items-center">
-                <div>
-                  <p className="text-lg font-semibold">Project Sync</p>
-                  <p className="text-sm text-gray-600">March 22, 2025 - 10:00 AM</p>
-                </div>
-                <button className="text-indigo-600 font-semibold hover:text-indigo-700 focus:outline-none">
-                  Join
+                <p className="text-gray-600 text-sm mt-1">Document Type: {entry.documentType}</p>
+                <button className="mt-2 text-sm text-white bg-blue-600 px-3 py-1 rounded hover:bg-blue-700">
+                  Process Entry
                 </button>
               </div>
-
-              {/* Meeting 2 */}
-              <div className="flex justify-between items-center">
-                <div>
-                  <p className="text-lg font-semibold">Team Catch-up</p>
-                  <p className="text-sm text-gray-600">March 22, 2025 - 2:00 PM</p>
-                </div>
-                <button className="text-indigo-600 font-semibold hover:text-indigo-700 focus:outline-none">
-                  Join
-                </button>
-              </div>
-
-              {/* Meeting 3 */}
-              <div className="flex justify-between items-center">
-                <div>
-                  <p className="text-lg font-semibold">Client Meeting</p>
-                  <p className="text-sm text-gray-600">March 23, 2025 - 9:00 AM</p>
-                </div>
-                <button className="text-indigo-600 font-semibold hover:text-indigo-700 focus:outline-none">
-                  Join
-                </button>
-              </div>
-            </div>
-          </div>
-
-          {/* Calendar Card */}
-          <div className="bg-white p-8 rounded-lg shadow-lg">
-            <h3 className="text-xl font-semibold text-gray-700 mb-4">My Calendar</h3>
-            <div className="text-center">
-              <div className="font-bold text-2xl mb-4">{new Date().toLocaleString('default', { month: 'long', year: 'numeric' })}</div>
-              <div className="grid grid-cols-7 gap-4 font-medium text-gray-700">
-                <div>Sun</div>
-                <div>Mon</div>
-                <div>Tue</div>
-                <div>Wed</div>
-                <div>Thu</div>
-                <div>Fri</div>
-                <div>Sat</div>
-              </div>
-              <div className="grid grid-cols-7 gap-4 mt-2">
-                {Array.from({ length: 35 }, (_, i) => (
-                  <div
-                    key={i}
-                    className={`p-3 text-center ${i + 1 === new Date().getDate() ? 'bg-blue-500 text-white rounded-full' : ''}`}
-                  >
-                    {i < 31 ? i + 1 : ''}
-                  </div>
-                ))}
-              </div>
-            </div>
+            ))}
           </div>
         </div>
-        {/* 🔽 Add Prescription Display Below Everything */}
-        <div className="mt-12">
-          <PatientPrescriptionDisplay />
+        
+        {/* Recently Completed */}
+        <div className="bg-white rounded-lg shadow-md p-6">
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-xl font-bold text-gray-800">Recently Completed</h2>
+            <Link to="/dataentry/completed" className="text-blue-600 hover:text-blue-800 text-sm font-medium">
+              View All
+            </Link>
+          </div>
+          
+          <div className="space-y-4">
+            {taskData.recentlyCompleted.map(entry => (
+              <div key={entry.id} className="border-b pb-3 last:border-0">
+                <div className="flex justify-between">
+                  <h3 className="font-medium">{entry.patientName}</h3>
+                  <span className="text-sm text-gray-500">{entry.entryDate}</span>
+                </div>
+                <p className="text-gray-600 text-sm mt-1">Document Type: {entry.documentType}</p>
+                <span className="inline-block mt-2 px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full">
+                  Completed
+                </span>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     </div>
   );
-};
+}
 
 export default DataEntryDashboard;
