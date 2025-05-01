@@ -8,6 +8,8 @@ import patientRoutes from './routes/patientRoutes.js';
 import pharmacyRoutes from './routes/pharmacyRoutes.js';
 import laboratoryRoutes from './routes/laboratoryRoutes.js';
 import dataentryRoutes from './routes/dataentryRoutes.js';
+import posRoutes from './routes/posRoutes.js';
+import { checkMySQLConnection } from './models/MySqlDB.js';
 
 // Load environment variables
 dotenv.config();
@@ -32,6 +34,7 @@ const connectDB = async () => {
 
 // Connect to database
 connectDB();
+checkMySQLConnection();
 
 // Routes
 app.use('/api/auth', authRoutes);
@@ -40,6 +43,7 @@ app.use('/api/patient', patientRoutes);
 app.use('/api/pharmacy', pharmacyRoutes);
 app.use('/api/laboratory', laboratoryRoutes);
 app.use('/api/dataentry', dataentryRoutes);
+app.use('/api/pos', posRoutes);
 
 // Simple test route
 app.get('/api', (req, res) => {
