@@ -30,3 +30,23 @@ export async function getCustomerSummary(req, res, next) {
     next(err);
   }
 }
+
+export async function getAllCustomersWithProducts(req, res, next) {
+  try {
+    // Fetch all customers
+    const [customers] = await pool.query(`SELECT * FROM customers`);
+    // Fetch all products for each customer (assuming a sales or products table with customer_id)
+    const [products] = await pool.query(`SELECT * FROM products`);
+    // Optionally, join sales/products with customers if needed
+
+    // Map products to customers
+    const customersWithProducts = customers.map(customer => ({
+      ...customer,
+      products: products.filter(p => p.customer_id === customer.id)
+    }));
+
+    res.json(customersWithProducts);
+  } catch (err) {
+    next(err);
+  }
+}
