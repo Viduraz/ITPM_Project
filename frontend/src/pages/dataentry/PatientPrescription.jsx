@@ -150,7 +150,7 @@ const PatientPrescription = () => {
   
       // Make the API call
       const response = await axios.post(
-        'http://localhost:3000/api/dataentry/create-prescription', // Ensure this is the correct endpoint
+        'http://localhost:3000/api/dataentry/prescriptions',
         formData,
         config
       );

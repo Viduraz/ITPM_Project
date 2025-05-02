@@ -1,3 +1,4 @@
+import mongoose from 'mongoose';
 import DataEntry from '../models/DataEntry.js';
 import User from '../models/User.js';
 import Diagnosis from '../models/Diagnosis.js';
@@ -6,27 +7,29 @@ import Patient from '../models/Patient.js';
 import Doctor from '../models/Doctor.js';
 import Hospital from '../models/Hospital.js';
 
-// ─────────────────────────────────────────────
-// Create Data Entry Profile
 export const createDataEntryProfile = async (req, res) => {
   try {
     const { userId, workShift, supervisor, department } = req.body;
 
+    // Check if the data entry profile already exists
     const existingProfile = await DataEntry.findOne({ userId });
     if (existingProfile) {
       return res.status(400).json({ message: 'Data entry profile already exists for this user' });
     }
 
+    // Get the user document
     const user = await User.findById(userId);
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
     }
 
+    // Update the user role if needed
     if (user.role !== 'dataentry') {
       user.role = 'dataentry';
       await user.save();
     }
 
+    // Create the data entry profile
     const dataEntry = new DataEntry({
       userId,
       workShift: workShift || 'Morning',
@@ -45,6 +48,7 @@ export const createDataEntryProfile = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+/*******  5c285ee7-98e9-4459-ad3a-19692bbf74a5  *******/
 
 // ─────────────────────────────────────────────
 // Get Data Entry Profile
@@ -98,6 +102,18 @@ export const createDiagnosis = async (req, res) => {
       followUpDate
     } = req.body;
 
+    // Validate if the provided IDs are valid ObjectIds
+    if (!mongoose.Types.ObjectId.isValid(patientId)) {
+      return res.status(400).json({ message: 'Invalid Patient ID' });
+    }
+    if (!mongoose.Types.ObjectId.isValid(doctorId)) {
+      return res.status(400).json({ message: 'Invalid Doctor ID' });
+    }
+    if (hospitalId && !mongoose.Types.ObjectId.isValid(hospitalId)) {
+      return res.status(400).json({ message: 'Invalid Hospital ID' });
+    }
+
+    // Proceed with creating the diagnosis
     const diagnosis = new Diagnosis({
       patientId,
       doctorId,
@@ -199,22 +215,37 @@ export const deleteDiagnosis = async (req, res) => {
 // Prescription Handlers (ESM Style)
 export const createPrescription = async (req, res) => {
   try {
+    const { diagnosis, pharmacyDetails } = req.body;
+
+    if (!mongoose.Types.ObjectId.isValid(diagnosis)) {
+      return res.status(400).json({ message: 'Invalid diagnosis ID' });
+    }
+
+    if (!mongoose.Types.ObjectId.isValid(pharmacyDetails?.pharmacyId)) {
+      return res.status(400).json({ message: 'Invalid pharmacy ID' });
+    }
+
     const newPrescription = new Prescription(req.body);
     await newPrescription.save();
     res.status(201).json(newPrescription);
   } catch (error) {
-    res.status(400).json({ message: 'Failed to create prescription', error: error.message });
+    res.status(400).json({
+      message: 'Failed to create prescription',
+      error: error.message,
+    });
   }
 };
 
+//get prescriptions
 export const getPrescriptions = async (req, res) => {
   try {
-    const prescriptions = await Prescription.find();
+    const prescriptions = await Prescription.find().populate('diagnosis');
     res.status(200).json(prescriptions);
   } catch (error) {
     res.status(500).json({ message: 'Error fetching prescriptions', error: error.message });
   }
 };
+
 
 export const getPrescriptionById = async (req, res) => {
   try {

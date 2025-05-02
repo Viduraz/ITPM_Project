@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import DiagnosesDisplay from './DiagnosesDisplay'; // Import the DiagnosesDisplay component
+
 
 const PatientDiagnosis = () => {
   const [formData, setFormData] = useState({
@@ -69,7 +71,7 @@ const PatientDiagnosis = () => {
 
       // Make the API call
       const response = await axios.post(
-        'http://localhost:3000/api/dataentry/diagnosis', // Your backend URL
+        'http://localhost:3000/api/dataentry/diagnoses', // Corrected endpoint
         formData,
         config
       );
@@ -106,7 +108,20 @@ const PatientDiagnosis = () => {
   };
 
   return (
+    
     <div className="w-full p-6">
+
+
+
+
+
+
+      <DiagnosesDisplay /> {/* Add DiagnosesDisplay component here */}
+
+
+
+
+      
       <h2 className="text-2xl font-bold mb-4">Create Diagnosis</h2>
       
       {successMessage && (
@@ -248,6 +263,8 @@ const PatientDiagnosis = () => {
           </button>
         </div>
       </form>
+
+
     </div>
   );
 };
