@@ -331,17 +331,22 @@ export const updatePrescription = async (req, res) => {
   }
 };
 
+
 export const deletePrescription = async (req, res) => {
   try {
     const deleted = await Prescription.findByIdAndDelete(req.params.id);
     if (!deleted) {
+      // 404 if the prescription does not exist
       return res.status(404).json({ message: 'Prescription not found' });
     }
+    // Return success message
     res.status(200).json({ message: 'Prescription deleted' });
   } catch (error) {
+    // Return error message
     res.status(500).json({ message: 'Failed to delete prescription', error: error.message });
   }
 };
+/*******  38d7a99a-73a8-46c4-8075-56f38592b764  *******/
 
 // ─────────────────────────────────────────────
 // Optional: Placeholder for patient listing

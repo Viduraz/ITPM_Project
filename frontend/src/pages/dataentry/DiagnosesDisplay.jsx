@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
+import DiagnosisReport from './DiagnosisReport';
+
 
 const DiagnosesDisplay = () => {
   const [diagnoses, setDiagnoses] = useState([]);
@@ -17,6 +19,9 @@ const DiagnosesDisplay = () => {
             Authorization: token ? `Bearer ${token}` : '',
           },
         });
+
+        console.log('API Response:', response.data);  // Log response to verify data
+
         setDiagnoses(response.data);
       } catch (error) {
         console.error('Error fetching diagnoses:', error);
@@ -71,6 +76,9 @@ const DiagnosesDisplay = () => {
 
   return (
     <div className="max-w-6xl mx-auto px-6 py-10">
+
+      <DiagnosisReport/>
+      
       <h2 className="text-3xl font-bold text-gray-800 mb-6">Diagnoses Records</h2>
       {diagnoses.length === 0 ? (
         <div className="text-center text-gray-600">No diagnoses available.</div>
@@ -100,21 +108,19 @@ const DiagnosesDisplay = () => {
 
               <div className="border-t border-gray-200 pt-3 mt-3 space-y-2 text-sm">
                 <div>
-                  <span className="font-semibold text-gray-800">Patient:</span>{' '}
-                  {diagnosis.patientId?.userId?.firstName || 'Unknown'}{' '}
-                  {diagnosis.patientId?.userId?.lastName || ''}
+                  <span className="font-semibold text-gray-800">Patient:</span> 
+                  {diagnosis.patientId?.userId?.firstName ? `${diagnosis.patientId.userId.firstName} ${diagnosis.patientId.userId.lastName}` : 'Unknown'}
                   <br />
                   <span className="text-gray-500">ID:</span> {diagnosis.patientId?._id || 'N/A'}
                 </div>
                 <div>
-                  <span className="font-semibold text-gray-800">Doctor:</span>{' '}
-                  {diagnosis.doctorId?.userId?.firstName || 'Unknown'}{' '}
-                  {diagnosis.doctorId?.userId?.lastName || ''}
+                  <span className="font-semibold text-gray-800">Doctor:</span> 
+                  {diagnosis.doctorId?.userId?.firstName ? `${diagnosis.doctorId.userId.firstName} ${diagnosis.doctorId.userId.lastName}` : 'Unknown'}
                   <br />
                   <span className="text-gray-500">ID:</span> {diagnosis.doctorId?._id || 'N/A'}
                 </div>
                 <div>
-                  <span className="font-semibold text-gray-800">Hospital:</span>{' '}
+                  <span className="font-semibold text-gray-800">Hospital:</span> 
                   {diagnosis.hospitalId?.name || 'N/A'}
                 </div>
               </div>
