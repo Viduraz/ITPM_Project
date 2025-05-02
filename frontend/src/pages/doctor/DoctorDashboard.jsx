@@ -74,7 +74,7 @@ const DoctorDashboard = () => {
 
       // API request with the sanitized data
       const response = await fetch(
-        `http://localhost:3001/api/doctors/${doctorId}/availability`,
+        `http://localhost:3000/api/doctors/${doctorId}/availability`,
         {
           method: "PUT",
           headers: {
@@ -211,7 +211,7 @@ const DoctorDashboard = () => {
         // Try to fetch from API
         try {
           const response = await fetch(
-            `http://localhost:3001/api/doctors/${doctorId}`
+            `http://localhost:3000/api/doctors/${doctorId}`
           );
 
           if (!response.ok) {
@@ -271,7 +271,7 @@ const DoctorDashboard = () => {
   const fetchDoctorAvailability = async () => {
     try {
       const response = await fetch(
-        `http://localhost:3001/api/doctors/${doctorId}/availability`
+        `http://localhost:3000/api/doctors/${doctorId}/availability`
       );
 
       if (!response.ok) {
@@ -308,7 +308,7 @@ const DoctorDashboard = () => {
     try {
       // Replace with your actual API endpoint
       const response = await fetch(
-        `http://localhost:3001/api/doctors/${doctorId}/availability`,
+        `http://localhost:3000/api/doctors/${doctorId}/availability`,
         {
           method: "PUT",
           headers: {

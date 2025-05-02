@@ -40,7 +40,7 @@ const DoctorRegister = () => {
       // Remove confirmPassword from the data sent to API
       const { confirmPassword, ...registerData } = formData;
 
-      const response = await fetch('http://localhost:3001/api/doctors/register', {
+      const response = await fetch('http://localhost:3000/api/doctors/register', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'

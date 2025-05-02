@@ -139,29 +139,29 @@ export const registerPatient = async (req, res) => {
 };
 
 // Register doctor
-export const registerDoctor = async (req, res) => {
-  try {
-    const { userId, specialization, licenseNumber, hospitalAffiliations, experience, qualifications } = req.body;
+// export const registerDoctor = async (req, res) => {
+//   try {
+//     const { userId, specialization, licenseNumber, hospitalAffiliations, experience, qualifications } = req.body;
 
-    const doctor = new Doctor({
-      userId,
-      specialization,
-      licenseNumber,
-      hospitalAffiliations,
-      experience,
-      qualifications
-    });
+//     const doctor = new Doctor({
+//       userId,
+//       specialization,
+//       licenseNumber,
+//       hospitalAffiliations,
+//       experience,
+//       qualifications
+//     });
 
-    await doctor.save();
+//     await doctor.save();
 
-    res.status(201).json({
-      message: 'Doctor registered successfully',
-      doctor
-    });
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
-};
+//     res.status(201).json({
+//       message: 'Doctor registered successfully',
+//       doctor
+//     });
+//   } catch (error) {
+//     res.status(500).json({ message: error.message });
+//   }
+// };
 
 // Register pharmacy
 export const registerPharmacy = async (req, res) => {
