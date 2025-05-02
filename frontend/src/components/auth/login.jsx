@@ -421,6 +421,23 @@ const Login = () => {
                   Register here
                 </Link>
               </p>
+              
+              {/* Doctor redirect button */}
+              <motion.div 
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.5 }}
+                className="mt-4"
+              >
+                <Link 
+                  to="/doctor/login" 
+                  className="inline-flex items-center justify-center px-5 py-2.5 bg-gradient-to-r from-indigo-600 to-indigo-800 text-white rounded-lg shadow-md hover:shadow-lg transition-all"
+                >
+                  <FaUserMd className="mr-2" />
+                  <span>Doctor Login Portal</span>
+                </Link>
+                <p className="text-xs text-gray-500 mt-2">For healthcare providers only</p>
+              </motion.div>
             </motion.div>
 
             <motion.div

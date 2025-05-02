@@ -40,16 +40,15 @@ import TestReports from "./pages/laboratory/TestReports";
 import AdminDashboard from "./admin/AdminDashboard";
 import UserManagement from "./admin/UserManagement";
 import SystemStats from "./admin/SystemStats";
-
-import DataEntryDashboard from "./pages/dataentry/DataEntryDashboard";
-import PatientDiagnosis from "./pages/dataentry/PatientDiagnosis";
-import PatientPrescription from "./pages/dataentry/PatientPrescription";
-import DiagnosisUpdate from "./pages/dataentry/DiagnosisUpdate";
-import PrescriptionUpdate from "./pages/dataentry/PrescriptionUpdate";
+import DataEntryDashboard from "./pages/dataentry/DataEntryDashboard.jsx";
+import PatientDiagnosis from "./pages/dataentry/PatientDiagnosis.jsx";
+import PatientPrescription from "./pages/dataentry/PatientPrescription.jsx";
+import DoctorLogin from "./pages/doctor/DoctorLogin.jsx";
+import DoctorRegister from "./pages/doctor/DoctorRegister.jsx";
 
 // Protected Route Component
 const ProtectedRoute = ({ children, allowedRoles }) => {
-  const { user, loading } = useAuth();
+  const { user, doctor, loading } = useAuth();
 
   if (loading) {
     return (
@@ -60,7 +59,7 @@ const ProtectedRoute = ({ children, allowedRoles }) => {
   }
 
   if (!user) {
-    return <Navigate to="/login" />;
+    // return <Navigate to="/login" />;
   }
 
   if (allowedRoles && !allowedRoles.includes(user.role)) {
@@ -83,12 +82,12 @@ const ProtectedRoute = ({ children, allowedRoles }) => {
 const DashboardRedirect = () => {
   const { user } = useAuth();
 
-  if (!user) {
-    return <Navigate to="/login" />;
-  }
+  // if (!user) {
+  //   return <Navigate to="/login" />;
+  // }
 
   if (user.role === "patient") return <Navigate to="/patient/dashboard" />;
-  if (user.role === "doctor") return <Navigate to="/doctor/dashboard" />;
+  // if (user.role === "doctor") return <Navigate to="/doctor/dashboard" />;
   if (user.role === "pharmacy") return <Navigate to="/pharmacy/dashboard" />;
   if (user.role === "laboratory")
     return <Navigate to="/laboratory/dashboard" />;
@@ -158,6 +157,25 @@ function App() {
               </ProtectedRoute>
             }
           />
+
+          <Route path="/doctor/login" element={<DoctorLogin />} />
+          <Route path="/doctor/register" element={<DoctorRegister />} />
+          <Route
+            path="/doctor/dashboard"
+            element={
+              <ProtectedRoute>
+                <DoctorDashboard />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/doctor/profile"
+            element={
+              <ProtectedRoute>
+                <DoctorProfile />
+              </ProtectedRoute>
+            }
+          />
           <Route
             path="/doctor-search/:specialty?"
             element={
@@ -170,7 +188,7 @@ function App() {
           />
 
           {/* Doctor Routes */}
-          <Route
+          {/* <Route
             path="/doctor/dashboard"
             element={
               <ProtectedRoute allowedRoles={["doctor", "admin"]}>
@@ -179,9 +197,9 @@ function App() {
                 </DashboardLayout>
               </ProtectedRoute>
             }
-          />
+          /> */}
 
-          <Route
+          {/* <Route
             path="/doctor/profile"
             element={
               <ProtectedRoute allowedRoles={["doctor", "admin"]}>
@@ -190,7 +208,7 @@ function App() {
                 </DashboardLayout>
               </ProtectedRoute>
             }
-          />
+          /> */}
           <Route
             path="/doctor/patients"
             element={
@@ -221,7 +239,7 @@ function App() {
               </ProtectedRoute>
             }
           />
-          <Route
+          {/* <Route
             path="/doctor-availability"
             element={
               <ProtectedRoute allowedRoles={["patient", "admin"]}>
@@ -230,7 +248,7 @@ function App() {
                 </DashboardLayout>
               </ProtectedRoute>
             }
-          />
+          /> */}
           <Route
             path="/doctor/report-generation"
             element={
@@ -343,28 +361,6 @@ function App() {
               <ProtectedRoute allowedRoles={["dataentry", "admin"]}>
                 <DashboardLayout>
                   <PatientPrescription />
-                </DashboardLayout>
-              </ProtectedRoute>
-            }
-          />
-
-          <Route
-            path="/dataentry/update/:id"
-            element={
-              <ProtectedRoute allowedRoles={["dataentry", "admin"]}>
-                <DashboardLayout>
-                  <DiagnosisUpdate />
-                </DashboardLayout>
-              </ProtectedRoute>
-            }
-          />
-
-<Route
-            path="/dataentry/update/:id"
-            element={
-              <ProtectedRoute allowedRoles={["dataentry", "admin"]}>
-                <DashboardLayout>
-                  <PrescriptionUpdate />
                 </DashboardLayout>
               </ProtectedRoute>
             }
