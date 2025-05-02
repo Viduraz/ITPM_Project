@@ -33,7 +33,7 @@ const DiagnosesDisplay = () => {
   }, []);
 
   const handleUpdate = (id) => {
-    navigate(`/update-diagnosis/${id}`);
+    navigate(`/dataentry/update/${id}`); // Updated route
   };
 
   const handleDelete = async (id) => {
