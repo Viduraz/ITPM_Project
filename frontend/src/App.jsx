@@ -45,6 +45,7 @@ import PatientDiagnosis from "./pages/dataentry/PatientDiagnosis.jsx";
 import PatientPrescription from "./pages/dataentry/PatientPrescription.jsx";
 import DoctorLogin from "./pages/doctor/DoctorLogin.jsx";
 import DoctorRegister from "./pages/doctor/DoctorRegister.jsx";
+import DiagnosisUpdate from "./pages/dataentry/DiagnosisUpdate.jsx";
 
 // Protected Route Component
 const ProtectedRoute = ({ children, allowedRoles }) => {
@@ -365,6 +366,17 @@ function App() {
               </ProtectedRoute>
             }
           />
+
+<Route
+  path="/dataentry/update/:id"
+  element={
+    <ProtectedRoute allowedRoles={["dataentry", "admin"]}>
+      <DashboardLayout>
+        <DiagnosisUpdate />
+      </DashboardLayout>
+    </ProtectedRoute>
+  }
+/>
 
           {/* 404 Route */}
           <Route path="*" element={<Navigate to="/" replace />} />
