@@ -136,12 +136,30 @@ export const createDiagnosis = async (req, res) => {
   }
 };
 
+//get all diagnoses
 export const getAllDiagnoses = async (req, res) => {
   try {
-    const diagnoses = await Diagnosis.find().populate('patientId doctorId');
+    const diagnoses = await Diagnosis.find()
+      .populate({
+        path: 'patientId',
+        populate: {
+          path: 'userId', // Populate 'userId' from the Patient model
+          model: 'User'
+        }
+      })
+      .populate({
+        path: 'doctorId',
+        populate: {
+          path: 'userId', // Populate 'userId' from the Doctor model
+          model: 'User'
+        }
+      })
+      .populate('hospitalId'); // Populating hospitalId if required
+
     res.status(200).json(diagnoses);
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    console.error('Error fetching diagnoses:', error);
+    res.status(500).json({ message: 'Failed to retrieve diagnoses.' });
   }
 };
 

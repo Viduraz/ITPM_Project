@@ -1,26 +1,23 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { useNavigate } from 'react-router-dom'; // React Router v6+
+import { useNavigate } from 'react-router-dom';
 
 const DiagnosesDisplay = () => {
   const [diagnoses, setDiagnoses] = useState([]);
   const [errorMessage, setErrorMessage] = useState('');
   const [loading, setLoading] = useState(true);
-  const navigate = useNavigate(); // Replaces useHistory in v6
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchDiagnoses = async () => {
       try {
         const token = localStorage.getItem('token');
-        const response = await axios.get(
-          'http://localhost:3000/api/dataentry/diagnoses',
-          {
-            headers: {
-              Authorization: token ? `Bearer ${token}` : '',
-            },
-          }
-        );
-        setDiagnoses(response.data); // Populate state
+        const response = await axios.get('http://localhost:3000/api/dataentry/diagnoses', {
+          headers: {
+            Authorization: token ? `Bearer ${token}` : '',
+          },
+        });
+        setDiagnoses(response.data);
       } catch (error) {
         console.error('Error fetching diagnoses:', error);
         setErrorMessage('An error occurred while fetching diagnoses.');
@@ -33,7 +30,7 @@ const DiagnosesDisplay = () => {
   }, []);
 
   const handleUpdate = (id) => {
-    navigate(`/dataentry/update/${id}`); // Updated route
+    navigate(`/dataentry/update/${id}`);
   };
 
   const handleDelete = async (id) => {
@@ -101,10 +98,21 @@ const DiagnosesDisplay = () => {
                   : 'Not scheduled'}
               </p>
 
-              <div className="mt-4 grid grid-cols-1 sm:grid-cols-3 gap-2 text-sm text-gray-700">
-                <p><strong>Patient ID:</strong> {diagnosis.patientId}</p>
-                <p><strong>Doctor ID:</strong> {diagnosis.doctorId}</p>
-                <p><strong>Hospital ID:</strong> {diagnosis.hospitalId || 'N/A'}</p>
+              <div className="mt-4">
+                <p>
+                  <strong>Patient Name:</strong>{' '}
+                  {diagnosis.patientId?.userId?.firstName || 'Unknown'}{' '}
+                  {diagnosis.patientId?.userId?.lastName || ''}
+                </p>
+                <p>
+                  <strong>Doctor Name:</strong>{' '}
+                  {diagnosis.doctorId?.userId?.firstName || 'Unknown'}{' '}
+                  {diagnosis.doctorId?.userId?.lastName || ''}
+                </p>
+                <p>
+                  <strong>Hospital:</strong>{' '}
+                  {diagnosis.hospitalId?.name || 'N/A'}
+                </p>
               </div>
 
               <div className="mt-6 space-x-4">
