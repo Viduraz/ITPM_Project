@@ -272,17 +272,20 @@ export const createPrescription = async (req, res) => {
   }
 };
 
-//get prescriptions
+// get prescription
+
 export const getPrescriptions = async (req, res) => {
   try {
-    const prescriptions = await Prescription.find().populate('diagnosis');
-    res.status(200).json(prescriptions);
+    const prescriptions = await Prescription.find()
+      .populate('patient')    // Populate patient object
+      .populate('doctor')     // Populate doctor object
+      .populate('hospital')   // Populate hospital object
+
+    res.status(200).json(prescriptions);  // Send populated prescriptions
   } catch (error) {
-    console.error("Error in getPrescriptions:", error);
     res.status(500).json({ message: 'Error fetching prescriptions', error: error.message });
   }
 };
-
 
 
 export const getPrescriptionById = async (req, res) => {

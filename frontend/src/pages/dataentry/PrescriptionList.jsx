@@ -9,12 +9,10 @@ const PrescriptionList = () => {
   useEffect(() => {
     const fetchPrescriptions = async () => {
       try {
-        console.log("Fetching prescriptions...");
         const token = localStorage.getItem('token');
         const res = await axios.get('http://localhost:3000/api/dataentry/prescriptions', {
           headers: { Authorization: `Bearer ${token}` },
         });
-        console.log("Fetched data:", res.data);
         setPrescriptions(res.data);
       } catch (error) {
         console.error('Error fetching prescriptions:', error.response?.data || error.message);
@@ -23,45 +21,85 @@ const PrescriptionList = () => {
         setLoading(false);
       }
     };
-  
     fetchPrescriptions();
   }, []);
-  
-  
+
+  const handleDelete = async (id) => {
+    if (!window.confirm('Are you sure you want to delete this prescription?')) return;
+
+    try {
+      const token = localStorage.getItem('token');
+      await axios.delete(`http://localhost:3000/api/dataentry/prescriptions/${id}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setPrescriptions(prev => prev.filter(p => p._id !== id));
+    } catch (error) {
+      console.error('Delete error:', error.response?.data || error.message);
+      alert('Failed to delete prescription');
+    }
+  };
+
+  const handleUpdate = (id) => {
+    // Redirect to update form (if you have one) or open modal
+    // For now, just log
+    console.log('Update prescription:', id);
+    alert(`Update form for prescription ID: ${id} not implemented`);
+  };
 
   if (loading) return <p>Loading prescriptions...</p>;
-  if (error) return <p>{error}</p>;
+  if (error) return <p className="text-red-600">{error}</p>;
 
   return (
-    <div>
-      <h2 className="text-xl font-bold mb-4">Prescriptions</h2>
+    <div className="p-6">
+      <h2 className="text-2xl font-bold mb-6">Prescription List</h2>
       {prescriptions.length === 0 ? (
         <p>No prescriptions found.</p>
       ) : (
-        <ul className="space-y-4">
+        <ul className="space-y-6">
           {prescriptions.map((prescription) => (
-            <li key={prescription._id} className="border p-4 rounded shadow">
-              <p><strong>Date:</strong> {new Date(prescription.date).toLocaleDateString()}</p>
-              <p><strong>Status:</strong> {prescription.status}</p>
-              <p><strong>Purchased From:</strong> {prescription.purchasedFrom}</p>
-              <p><strong>Diagnosis:</strong> {prescription.diagnosis?.description || 'N/A'}</p>
+            <li key={prescription._id} className="border border-gray-300 p-5 rounded-xl shadow-md">
+              <div className="mb-2">
+                <p><span className="font-medium">Date:</span> {new Date(prescription.date).toLocaleDateString()}</p>
+                <p><span className="font-medium">Status:</span> {prescription.status}</p>
+                <p><span className="font-medium">Purchased From:</span> {prescription.purchasedFrom}</p>
+              </div>
 
               {prescription.medications?.length > 0 && (
-                <div>
-                  <p className="font-semibold mt-2">Medications:</p>
-                  <ul className="ml-4 list-disc">
+                <div className="mt-3">
+                  <p className="font-semibold">Medications:</p>
+                  <ul className="list-disc list-inside ml-2 mt-1">
                     {prescription.medications.map((med, index) => (
-                      <li key={index}>
-                        {med.name} - {med.dosage} - {med.frequency}
+                      <li key={index} className="text-sm text-gray-700">
+                        <span className="font-medium">{med.name}</span> — {med.dosage} dose, {med.frequency}x/day, {med.duration} days
                       </li>
                     ))}
                   </ul>
                 </div>
               )}
 
-              {prescription.pharmacyDetails?.pharmacyId && (
-                <p><strong>Pharmacy ID:</strong> {prescription.pharmacyDetails.pharmacyId}</p>
+              {prescription.notes && (
+                <p className="mt-2 text-sm text-gray-600"><span className="font-medium">Notes:</span> {prescription.notes}</p>
               )}
+
+              {prescription.pharmacyDetails?.pharmacyId && (
+                <p className="text-sm text-gray-600 mt-1"><span className="font-medium">Pharmacy ID:</span> {prescription.pharmacyDetails.pharmacyId}</p>
+              )}
+
+              {/* Action Buttons */}
+              <div className="mt-4 flex gap-3">
+                <button
+                  onClick={() => handleUpdate(prescription._id)}
+                  className="px-4 py-2 bg-yellow-500 hover:bg-yellow-600 text-white text-sm font-medium rounded"
+                >
+                  Update
+                </button>
+                <button
+                  onClick={() => handleDelete(prescription._id)}
+                  className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white text-sm font-medium rounded"
+                >
+                  Delete
+                </button>
+              </div>
             </li>
           ))}
         </ul>
