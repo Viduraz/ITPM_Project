@@ -48,7 +48,19 @@ const prescriptionSchema = new mongoose.Schema({
   pharmacyDetails: {
     pharmacyId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'Pharmacy'
+      ref: 'Pharmacy',
+      // Custom validation for conditional requirement based on purchasedFrom
+      validate: {
+        validator: function(value) {
+          // If "purchasedFrom" is "not_purchased", "pharmacyId" should not be required
+          if (this.purchasedFrom === 'not_purchased') {
+            return true; // No validation needed for pharmacyId when not purchased
+          }
+          // Otherwise, validate that pharmacyId is provided
+          return value != null;
+        },
+        message: 'Pharmacy ID is required when purchasedFrom is not "not_purchased"'
+      }
     },
     purchaseDate: Date,
     invoiceNumber: String

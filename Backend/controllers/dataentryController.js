@@ -233,18 +233,36 @@ export const deleteDiagnosis = async (req, res) => {
 // Prescription Handlers (ESM Style)
 export const createPrescription = async (req, res) => {
   try {
-    const { diagnosis, pharmacyDetails } = req.body;
+    const { diagnosis, pharmacyDetails, purchasedFrom, medications, date } = req.body;
 
+    // 1. Validate Diagnosis ID
     if (!mongoose.Types.ObjectId.isValid(diagnosis)) {
       return res.status(400).json({ message: 'Invalid diagnosis ID' });
     }
 
-    if (!mongoose.Types.ObjectId.isValid(pharmacyDetails?.pharmacyId)) {
-      return res.status(400).json({ message: 'Invalid pharmacy ID' });
+    // 2. Validate required fields
+    if (!medications || medications.length === 0) {
+      return res.status(400).json({ message: 'At least one medication is required' });
     }
 
+    if (!date) {
+      return res.status(400).json({ message: 'Date is required' });
+    }
+
+    // 3. Conditionally validate Pharmacy ID
+    if (purchasedFrom !== 'not_purchased') {
+      if (!pharmacyDetails || !mongoose.Types.ObjectId.isValid(pharmacyDetails.pharmacyId)) {
+        return res.status(400).json({ message: 'Pharmacy ID is required when purchased' });
+      }
+    } else {
+      // Clean up pharmacyDetails if not purchased
+      delete req.body.pharmacyDetails;
+    }
+
+    // 4. Create and save prescription
     const newPrescription = new Prescription(req.body);
     await newPrescription.save();
+
     res.status(201).json(newPrescription);
   } catch (error) {
     res.status(400).json({
