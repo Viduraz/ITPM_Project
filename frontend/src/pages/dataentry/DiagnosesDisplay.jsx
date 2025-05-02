@@ -100,18 +100,23 @@ const DiagnosesDisplay = () => {
 
               <div className="mt-4">
                 <p>
-                  <strong>Patient Name:</strong>{' '}
-                  {diagnosis.patientId?.userId?.firstName || 'Unknown'}{' '}
-                  {diagnosis.patientId?.userId?.lastName || ''}
+                  <strong>Patient Name:</strong> 
+                  {diagnosis.patientId?.userId?.firstName || 'Unknown'} 
+                  {diagnosis.patientId?.userId?.lastName || 'Unknown'}
                 </p>
                 <p>
-                  <strong>Doctor Name:</strong>{' '}
-                  {diagnosis.doctorId?.userId?.firstName || 'Unknown'}{' '}
-                  {diagnosis.doctorId?.userId?.lastName || ''}
+                  <strong>Patient ID:</strong> {diagnosis.patientId?._id || 'Not available'}
                 </p>
                 <p>
-                  <strong>Hospital:</strong>{' '}
-                  {diagnosis.hospitalId?.name || 'N/A'}
+                  <strong>Doctor Name:</strong> 
+                  {diagnosis.doctorId?.userId?.firstName || 'Unknown'} 
+                  {diagnosis.doctorId?.userId?.lastName || 'Unknown'}
+                </p>
+                <p>
+                  <strong>Doctor ID:</strong> {diagnosis.doctorId?._id || 'Not available'}
+                </p>
+                <p>
+                  <strong>Hospital:</strong> {diagnosis.hospitalId?.name || 'N/A'}
                 </p>
               </div>
 

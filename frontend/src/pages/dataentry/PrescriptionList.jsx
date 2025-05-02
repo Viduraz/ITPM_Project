@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
 
 const PrescriptionList = () => {
   const [prescriptions, setPrescriptions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const navigate = useNavigate(); // Used for navigation
 
   useEffect(() => {
     const fetchPrescriptions = async () => {
@@ -40,11 +42,8 @@ const PrescriptionList = () => {
   };
 
   const handleUpdate = (id) => {
-    // Redirect to update form (if you have one) or open modal
-    // For now, just log
-    console.log('Update prescription:', id);
-    alert(`Update form for prescription ID: ${id} not implemented`);
-  };
+    navigate(`/dataentry/update/${id}`);
+  };  
 
   if (loading) return <p>Loading prescriptions...</p>;
   if (error) return <p className="text-red-600">{error}</p>;
@@ -85,7 +84,6 @@ const PrescriptionList = () => {
                 <p className="text-sm text-gray-600 mt-1"><span className="font-medium">Pharmacy ID:</span> {prescription.pharmacyDetails.pharmacyId}</p>
               )}
 
-              {/* Action Buttons */}
               <div className="mt-4 flex gap-3">
                 <button
                   onClick={() => handleUpdate(prescription._id)}

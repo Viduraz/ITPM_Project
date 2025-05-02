@@ -45,6 +45,7 @@ import DataEntryDashboard from "./pages/dataentry/DataEntryDashboard";
 import PatientDiagnosis from "./pages/dataentry/PatientDiagnosis";
 import PatientPrescription from "./pages/dataentry/PatientPrescription";
 import DiagnosisUpdate from "./pages/dataentry/DiagnosisUpdate";
+import PrescriptionUpdate from "./pages/dataentry/PrescriptionUpdate";
 
 // Protected Route Component
 const ProtectedRoute = ({ children, allowedRoles }) => {
@@ -353,6 +354,17 @@ function App() {
               <ProtectedRoute allowedRoles={["dataentry", "admin"]}>
                 <DashboardLayout>
                   <DiagnosisUpdate />
+                </DashboardLayout>
+              </ProtectedRoute>
+            }
+          />
+
+<Route
+            path="/dataentry/update/:id"
+            element={
+              <ProtectedRoute allowedRoles={["dataentry", "admin"]}>
+                <DashboardLayout>
+                  <PrescriptionUpdate />
                 </DashboardLayout>
               </ProtectedRoute>
             }

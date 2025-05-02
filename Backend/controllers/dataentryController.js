@@ -136,36 +136,53 @@ export const createDiagnosis = async (req, res) => {
   }
 };
 
-//get all diagnoses
 export const getAllDiagnoses = async (req, res) => {
   try {
     const diagnoses = await Diagnosis.find()
       .populate({
-        path: 'patientId',
+        path: 'patientId', 
         populate: {
-          path: 'userId', // Populate 'userId' from the Patient model
-          model: 'User'
-        }
+          path: 'userId',  // Populate the userId field to get firstName and lastName
+          select: 'firstName lastName',  // Only select firstName and lastName
+        },
       })
       .populate({
         path: 'doctorId',
         populate: {
-          path: 'userId', // Populate 'userId' from the Doctor model
-          model: 'User'
-        }
+          path: 'userId',
+          select: 'firstName lastName',
+        },
       })
-      .populate('hospitalId'); // Populating hospitalId if required
+      .populate('hospitalId', 'name');  // Populating hospitalId with hospital name
 
-    res.status(200).json(diagnoses);
+    res.json(diagnoses);
   } catch (error) {
     console.error('Error fetching diagnoses:', error);
-    res.status(500).json({ message: 'Failed to retrieve diagnoses.' });
+    res.status(500).json({ message: 'Error fetching diagnoses' });
   }
 };
 
+
+
+//get diagnosis by id
 export const getDiagnosisById = async (req, res) => {
   try {
-    const diagnosis = await Diagnosis.findById(req.params.id).populate('patientId doctorId');
+    const diagnosis = await Diagnosis.findById(req.params.id)
+      .populate({
+        path: 'patientId', 
+        populate: {
+          path: 'userId',
+          select: 'firstName lastName',
+        },
+      })
+      .populate({
+        path: 'doctorId', 
+        populate: {
+          path: 'userId',
+          select: 'firstName lastName',
+        },
+      });
+
     if (!diagnosis) {
       return res.status(404).json({ message: 'Diagnosis not found' });
     }
@@ -174,6 +191,8 @@ export const getDiagnosisById = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+
+
 
 export const updateDiagnosis = async (req, res) => {
   try {
@@ -272,7 +291,7 @@ export const createPrescription = async (req, res) => {
   }
 };
 
-// get prescription
+// get prescriptions
 
 export const getPrescriptions = async (req, res) => {
   try {
