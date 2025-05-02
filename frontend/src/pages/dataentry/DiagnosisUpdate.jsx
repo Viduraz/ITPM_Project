@@ -1,112 +1,215 @@
-import React, { useEffect, useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import { useParams, useNavigate } from 'react-router-dom'; // useParams to fetch id from URL
 
 const DiagnosisUpdate = () => {
-  const { id } = useParams();  // Get the diagnosis ID from the URL
-  const navigate = useNavigate();  // For navigation after successful update
-  
-  // State to store diagnosis data and loading state
+  const { id } = useParams(); // Get the diagnosis ID from the URL
   const [diagnosis, setDiagnosis] = useState({
+    patientId: '',
+    doctorId: '',
+    hospitalId: '',
     condition: '',
-    description: '',
-    treatment: ''
+    diagnosisDetails: '',
+    symptoms: '',
+    notes: '',
+    followUpDate: '',
   });
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
+  const [errorMessage, setErrorMessage] = useState('');
+  const navigate = useNavigate();
 
-  // Fetch diagnosis data by ID
   useEffect(() => {
-    const fetchDiagnosis = async () => {
+    const fetchDiagnosisData = async () => {
       try {
-        const response = await axios.get(`/api/diagnoses/${id}`);
-        setDiagnosis(response.data);
-        setLoading(false);
+        const token = localStorage.getItem('token');
+        const response = await axios.get(
+          `http://localhost:3000/api/dataentry/diagnoses/${id}`, // Fetch diagnosis data by ID
+          {
+            headers: {
+              Authorization: token ? `Bearer ${token}` : '',
+            },
+          }
+        );
+        setDiagnosis(response.data); // Set diagnosis data into state
       } catch (error) {
-        setError('Failed to fetch diagnosis details.');
+        console.error('Error fetching diagnosis data:', error);
+        setErrorMessage('Failed to load diagnosis data');
+      } finally {
         setLoading(false);
       }
     };
-    fetchDiagnosis();
+
+    fetchDiagnosisData();
   }, [id]);
 
-  // Handle form input change
   const handleChange = (e) => {
     const { name, value } = e.target;
     setDiagnosis((prevState) => ({
       ...prevState,
-      [name]: value
+      [name]: value,
     }));
   };
 
-  // Handle form submission to update diagnosis
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
 
     try {
-      const response = await axios.put(`/api/diagnoses/${id}`, diagnosis);
-      setLoading(false);
-      if (response.status === 200) {
-        navigate('/dataentry/diagnosislist');  // Navigate to the diagnosis list or any other page you want
-      }
+      const token = localStorage.getItem('token');
+      const response = await axios.put(
+        `http://localhost:3000/api/dataentry/diagnoses/${id}`, // Update diagnosis by ID
+        diagnosis,
+        {
+          headers: {
+            Authorization: token ? `Bearer ${token}` : '',
+          },
+        }
+      );
+
+      alert('Diagnosis updated successfully');
+      navigate('/dataentry/diagnosislist'); // Redirect after update
     } catch (error) {
-      setError('Failed to update diagnosis.');
+      console.error('Error updating diagnosis:', error);
+      setErrorMessage('Failed to update diagnosis');
       setLoading(false);
     }
   };
 
-  if (loading) return <div>Loading...</div>;
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <p className="text-xl text-gray-600">Loading...</p>
+      </div>
+    );
+  }
+
+  if (errorMessage) {
+    return (
+      <div className="bg-red-100 text-red-700 p-4 m-4 rounded-md">
+        <p>{errorMessage}</p>
+      </div>
+    );
+  }
 
   return (
-    <div className="p-6 max-w-md mx-auto bg-white shadow-md rounded-lg">
-      <h2 className="text-xl font-semibold mb-4">Update Diagnosis</h2>
-      
-      {error && <div className="text-red-500">{error}</div>}
+    <div className="p-6">
+      <h2 className="text-2xl font-bold mb-4">Update Diagnosis</h2>
+      <form onSubmit={handleSubmit} className="space-y-4">
+        {/* Patient ID */}
+        <div>
+          <label className="block text-sm font-medium text-gray-600">Patient ID</label>
+          <input
+            type="text"
+            name="patientId"
+            value={diagnosis.patientId}
+            onChange={handleChange}
+            className="mt-1 block w-full p-2 border border-gray-300 rounded-md"
+            placeholder="Enter patient ID"
+            required
+          />
+        </div>
 
-      <form onSubmit={handleSubmit}>
-        <div className="mb-4">
-          <label className="block text-gray-700">Condition</label>
+        {/* Doctor ID */}
+        <div>
+          <label className="block text-sm font-medium text-gray-600">Doctor ID</label>
+          <input
+            type="text"
+            name="doctorId"
+            value={diagnosis.doctorId}
+            onChange={handleChange}
+            className="mt-1 block w-full p-2 border border-gray-300 rounded-md"
+            placeholder="Enter doctor ID"
+            required
+          />
+        </div>
+
+        {/* Hospital ID */}
+        <div>
+          <label className="block text-sm font-medium text-gray-600">Hospital ID</label>
+          <input
+            type="text"
+            name="hospitalId"
+            value={diagnosis.hospitalId || ''}
+            onChange={handleChange}
+            className="mt-1 block w-full p-2 border border-gray-300 rounded-md"
+            placeholder="Enter hospital ID (optional)"
+          />
+        </div>
+
+        {/* Condition */}
+        <div>
+          <label className="block text-sm font-medium text-gray-600">Condition</label>
           <input
             type="text"
             name="condition"
             value={diagnosis.condition}
             onChange={handleChange}
-            className="w-full p-2 border border-gray-300 rounded"
+            className="mt-1 block w-full p-2 border border-gray-300 rounded-md"
+            placeholder="Enter condition"
             required
           />
         </div>
 
-        <div className="mb-4">
-          <label className="block text-gray-700">Description</label>
+        {/* Diagnosis Details */}
+        <div>
+          <label className="block text-sm font-medium text-gray-600">Diagnosis Details</label>
           <textarea
-            name="description"
-            value={diagnosis.description}
+            name="diagnosisDetails"
+            value={diagnosis.diagnosisDetails}
             onChange={handleChange}
-            className="w-full p-2 border border-gray-300 rounded"
+            className="mt-1 block w-full p-2 border border-gray-300 rounded-md"
+            placeholder="Enter diagnosis details"
             required
           />
         </div>
 
-        <div className="mb-4">
-          <label className="block text-gray-700">Treatment</label>
+        {/* Symptoms */}
+        <div>
+          <label className="block text-sm font-medium text-gray-600">Symptoms</label>
+          <textarea
+            name="symptoms"
+            value={diagnosis.symptoms}
+            onChange={handleChange}
+            className="mt-1 block w-full p-2 border border-gray-300 rounded-md"
+            placeholder="Enter symptoms"
+            required
+          />
+        </div>
+
+        {/* Notes */}
+        <div>
+          <label className="block text-sm font-medium text-gray-600">Notes</label>
+          <textarea
+            name="notes"
+            value={diagnosis.notes}
+            onChange={handleChange}
+            className="mt-1 block w-full p-2 border border-gray-300 rounded-md"
+            placeholder="Enter any additional notes"
+          />
+        </div>
+
+        {/* Follow-up Date */}
+        <div>
+          <label className="block text-sm font-medium text-gray-600">Follow-up Date</label>
           <input
-            type="text"
-            name="treatment"
-            value={diagnosis.treatment}
+            type="date"
+            name="followUpDate"
+            value={diagnosis.followUpDate || ''}
             onChange={handleChange}
-            className="w-full p-2 border border-gray-300 rounded"
-            required
+            className="mt-1 block w-full p-2 border border-gray-300 rounded-md"
           />
         </div>
 
-        <button
-          type="submit"
-          className="w-full bg-blue-500 text-white p-2 rounded"
-          disabled={loading}
-        >
-          {loading ? 'Updating...' : 'Update Diagnosis'}
-        </button>
+        {/* Submit Button */}
+        <div>
+          <button
+            type="submit"
+            className="bg-blue-500 hover:bg-blue-600 text-white font-medium py-2 px-4 rounded"
+            disabled={loading}
+          >
+            {loading ? 'Updating...' : 'Update Diagnosis'}
+          </button>
+        </div>
       </form>
     </div>
   );
