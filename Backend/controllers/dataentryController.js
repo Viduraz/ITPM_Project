@@ -278,9 +278,11 @@ export const getPrescriptions = async (req, res) => {
     const prescriptions = await Prescription.find().populate('diagnosis');
     res.status(200).json(prescriptions);
   } catch (error) {
+    console.error("Error in getPrescriptions:", error);
     res.status(500).json({ message: 'Error fetching prescriptions', error: error.message });
   }
 };
+
 
 
 export const getPrescriptionById = async (req, res) => {

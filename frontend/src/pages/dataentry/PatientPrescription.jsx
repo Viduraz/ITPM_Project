@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import PrescriptionList from './PrescriptionList'; // Import the DiagnosesDisplay component
 
 const TESTING_MODE = false;
 
@@ -183,6 +184,14 @@ const PatientPrescription = () => {
 
   return (
     <div className="w-full p-6">
+
+
+
+<PrescriptionList /> {/* Add DiagnosesDisplay component here */}
+
+
+
+
       <h2 className="text-2xl font-bold mb-4">Create Prescription</h2>
 
       {successMessage && (
