@@ -1,6 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import PrescriptionList from './PrescriptionList'; // Import the DiagnosesDisplay component
+import { motion, AnimatePresence } from 'framer-motion';
+import PrescriptionList from './PrescriptionList';
+import { FaPlus, FaMinus, FaPrescriptionBottleAlt, FaNotesMedical, 
+         FaUserMd, FaHospital, FaClipboardCheck, FaCalendarAlt, 
+         FaInfoCircle, FaShoppingCart, FaFileInvoice } from 'react-icons/fa';
 
 const TESTING_MODE = false;
 
@@ -31,6 +35,24 @@ const PatientPrescription = () => {
   const [errorMessages, setErrorMessages] = useState([]);
   const [successMessage, setSuccessMessage] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [activeTab, setActiveTab] = useState('new'); // 'new' or 'list'
+
+  // Animation variants
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        when: "beforeChildren",
+        staggerChildren: 0.1
+      }
+    }
+  };
+
+  const itemVariants = {
+    hidden: { y: 20, opacity: 0 },
+    visible: { y: 0, opacity: 1 }
+  };
 
   useEffect(() => {
     const currentDate = new Date().toISOString().split('T')[0];
@@ -95,7 +117,6 @@ const PatientPrescription = () => {
       errors.push('Medication name is required for all medications');
     }
 
-    // Conditionally validate pharmacy fields
     if (formData.purchasedFrom !== 'not_purchased') {
       if (!formData.pharmacyDetails.pharmacyId) {
         errors.push('Pharmacy ID is required');
@@ -183,180 +204,489 @@ const PatientPrescription = () => {
   };
 
   return (
-    <div className="w-full p-6">
-
-
-
-<PrescriptionList /> {/* Add DiagnosesDisplay component here */}
-
-
-
-
-      <h2 className="text-2xl font-bold mb-4">Create Prescription</h2>
-
-      {successMessage && (
-        <div className="mb-4 p-2 bg-green-100 border-l-4 border-green-500 text-green-700">
-          {successMessage}
-        </div>
-      )}
-
-      <form onSubmit={handleSubmit} className="space-y-4 max-w-2xl">
-        {/* Patient, Doctor, Hospital, Diagnosis */}
-        {['patient', 'doctor', 'hospital', 'diagnosis'].map((field) => (
-          <div key={field}>
-            <label className="block text-sm font-medium text-gray-600 capitalize">{field}</label>
-            <input
-              type="text"
-              name={field}
-              value={formData[field]}
-              onChange={handleChange}
-              required={field !== 'hospital'}
-              className="mt-1 block w-full p-2 border border-gray-300 rounded-md"
-              placeholder={`Enter ${field} ID${field === 'hospital' ? ' (optional)' : ''}`}
-            />
-          </div>
-        ))}
-
-        {/* Medications */}
-        <div>
-          <label className="block text-sm font-medium text-gray-600">Medications</label>
-          {formData.medications.map((med, index) => (
-            <div key={index} className="mb-4 space-y-2">
-              {['name', 'dosage', 'frequency', 'duration'].map((field) => (
-                <input
-                  key={field}
-                  type="text"
-                  name={field}
-                  value={med[field]}
-                  onChange={(e) => handleMedicationChange(index, e)}
-                  className="block w-full p-2 border border-gray-300 rounded-md"
-                  placeholder={field.charAt(0).toUpperCase() + field.slice(1)}
-                  required={field === 'name'}
-                />
-              ))}
-              <textarea
-                name="instructions"
-                value={med.instructions}
-                onChange={(e) => handleMedicationChange(index, e)}
-                rows="2"
-                className="block w-full p-2 border border-gray-300 rounded-md"
-                placeholder="Instructions"
-              />
-              {formData.medications.length > 1 && (
-                <button type="button" className="text-red-500" onClick={() => handleRemoveMedication(index)}>
-                  Remove Medication
-                </button>
-              )}
-            </div>
-          ))}
-          <button type="button" className="text-blue-500" onClick={handleAddMedication}>
-            Add Medication
-          </button>
-        </div>
-
-        {/* Notes, Status */}
-        <div>
-          <label className="block text-sm font-medium text-gray-600">Notes</label>
-          <textarea
-            name="notes"
-            value={formData.notes}
-            onChange={handleChange}
-            rows="3"
-            className="block w-full p-2 border border-gray-300 rounded-md"
-            placeholder="Enter any additional notes"
-          />
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-gray-600">Status</label>
-          <select
-            name="status"
-            value={formData.status}
-            onChange={handleChange}
-            className="block w-full p-2 border border-gray-300 rounded-md"
-          >
-            <option value="active">Active</option>
-            <option value="completed">Completed</option>
-            <option value="cancelled">Cancelled</option>
-          </select>
-        </div>
-
-        {/* Purchased From */}
-        <div>
-          <label className="block text-sm font-medium text-gray-600">Purchased From</label>
-          <select
-            name="purchasedFrom"
-            value={formData.purchasedFrom}
-            onChange={handleChange}
-            className="block w-full p-2 border border-gray-300 rounded-md"
-          >
-            <option value="not_purchased">Not Purchased</option>
-            <option value="hospital_pharmacy">Hospital Pharmacy</option>
-            <option value="outside_pharmacy">Outside Pharmacy</option>
-          </select>
-        </div>
-
-        {/* Conditional Pharmacy Fields */}
-        {formData.purchasedFrom !== 'not_purchased' && (
-          <div className="space-y-2">
-            {['pharmacyId', 'purchaseDate', 'invoiceNumber'].map((field) => (
-              <input
-                key={field}
-                type={field === 'purchaseDate' ? 'date' : 'text'}
-                name={field}
-                value={formData.pharmacyDetails[field]}
-                onChange={(e) =>
-                  setFormData({
-                    ...formData,
-                    pharmacyDetails: {
-                      ...formData.pharmacyDetails,
-                      [field]: e.target.value,
-                    },
-                  })
-                }
-                className="block w-full p-2 border border-gray-300 rounded-md"
-                placeholder={field === 'pharmacyId' ? 'Pharmacy ID' : field.replace(/([A-Z])/g, ' $1')}
-              />
-            ))}
-          </div>
-        )}
-
-        {/* Date */}
-        <div>
-          <label className="block text-sm font-medium text-gray-600">Date</label>
-          <input
-            type="date"
-            name="date"
-            value={formData.date}
-            onChange={handleChange}
-            className="block w-full p-2 border border-gray-300 rounded-md"
-          />
-        </div>
-
-        {/* Errors */}
-        {errorMessages.length > 0 && (
-          <div className="p-2 bg-red-100 border-l-4 border-red-500 text-red-700">
-            <ul className="list-disc pl-5">
-              {errorMessages.map((error, index) => (
-                <li key={index}>{error}</li>
-              ))}
-            </ul>
-          </div>
-        )}
-
-        {/* Submit */}
-        <div>
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 bg-gray-50 min-h-screen">
+      {/* Header with Tabs */}
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold mb-6 text-gray-800">Prescription Management</h1>
+        
+        <div className="flex space-x-1 bg-white rounded-xl p-1 shadow-md mb-6">
           <button
-            type="submit"
-            disabled={isSubmitting}
-            className={`w-full py-2 px-4 rounded-md text-white font-medium ${
-              isSubmitting ? 'bg-indigo-400' : 'bg-indigo-600 hover:bg-indigo-700'
+            onClick={() => setActiveTab('new')}
+            className={`w-full py-3 px-5 text-sm font-medium rounded-lg flex items-center justify-center transition-all duration-200 ${
+              activeTab === 'new'
+                ? 'bg-gradient-to-r from-indigo-600 to-blue-500 text-white shadow-md'
+                : 'text-gray-600 hover:bg-gray-100'
             }`}
           >
-            {isSubmitting ? 'Submitting...' : 'Create Prescription'}
+            <FaPrescriptionBottleAlt className={`mr-2 ${activeTab === 'new' ? 'text-white' : 'text-indigo-500'}`} />
+            Create Prescription
+          </button>
+          <button
+            onClick={() => setActiveTab('list')}
+            className={`w-full py-3 px-5 text-sm font-medium rounded-lg flex items-center justify-center transition-all duration-200 ${
+              activeTab === 'list'
+                ? 'bg-gradient-to-r from-indigo-600 to-blue-500 text-white shadow-md'
+                : 'text-gray-600 hover:bg-gray-100'
+            }`}
+          >
+            <FaClipboardCheck className={`mr-2 ${activeTab === 'list' ? 'text-white' : 'text-indigo-500'}`} />
+            Prescription List
           </button>
         </div>
-      </form>
+      </div>
+
+      <AnimatePresence mode="wait">
+        {activeTab === 'list' ? (
+          <motion.div
+            key="list"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            transition={{ duration: 0.3 }}
+          >
+            <PrescriptionList />
+          </motion.div>
+        ) : (
+          <motion.div
+            key="form"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            transition={{ duration: 0.3 }}
+            className="bg-white rounded-2xl shadow-lg overflow-hidden"
+          >
+            <div className="h-2 bg-gradient-to-r from-blue-500 to-indigo-600"></div>
+            <div className="p-8">
+              <h2 className="text-2xl font-bold mb-6 text-gray-800 flex items-center">
+                <FaNotesMedical className="mr-3 text-indigo-600" />
+                Create New Prescription
+              </h2>
+
+              <AnimatePresence>
+                {successMessage && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    className="mb-6 p-4 bg-green-50 border-l-4 border-green-500 text-green-700 rounded-md flex items-start"
+                  >
+                    <div className="flex-shrink-0 mt-0.5">
+                      <svg className="h-5 w-5 text-green-500" viewBox="0 0 20 20" fill="currentColor">
+                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                      </svg>
+                    </div>
+                    <div className="ml-3">
+                      <p className="text-sm font-medium">{successMessage}</p>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
+              <form onSubmit={handleSubmit}>
+                <motion.div
+                  variants={containerVariants}
+                  initial="hidden"
+                  animate="visible"
+                  className="grid grid-cols-1 gap-8"
+                >
+                  {/* Basic Information Section */}
+                  <motion.div variants={itemVariants} className="bg-gray-50 p-6 rounded-xl">
+                    <h3 className="text-lg font-semibold mb-4 text-gray-700 flex items-center">
+                      <FaInfoCircle className="mr-2 text-indigo-500" />
+                      Basic Information
+                    </h3>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Patient ID*</label>
+                        <div className="relative rounded-md shadow-sm">
+                          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <FaUserMd className="text-gray-400" />
+                          </div>
+                          <input
+                            type="text"
+                            name="patient"
+                            value={formData.patient}
+                            onChange={handleChange}
+                            required
+                            className="focus:ring-indigo-500 focus:border-indigo-500 block w-full pl-10 pr-3 py-3 sm:text-sm border border-gray-300 rounded-lg"
+                            placeholder="Enter patient ID"
+                          />
+                        </div>
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Doctor ID*</label>
+                        <div className="relative rounded-md shadow-sm">
+                          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <FaUserMd className="text-gray-400" />
+                          </div>
+                          <input
+                            type="text"
+                            name="doctor"
+                            value={formData.doctor}
+                            onChange={handleChange}
+                            required
+                            className="focus:ring-indigo-500 focus:border-indigo-500 block w-full pl-10 pr-3 py-3 sm:text-sm border border-gray-300 rounded-lg"
+                            placeholder="Enter doctor ID"
+                          />
+                        </div>
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Diagnosis ID*</label>
+                        <div className="relative rounded-md shadow-sm">
+                          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <FaNotesMedical className="text-gray-400" />
+                          </div>
+                          <input
+                            type="text"
+                            name="diagnosis"
+                            value={formData.diagnosis}
+                            onChange={handleChange}
+                            required
+                            className="focus:ring-indigo-500 focus:border-indigo-500 block w-full pl-10 pr-3 py-3 sm:text-sm border border-gray-300 rounded-lg"
+                            placeholder="Enter diagnosis ID"
+                          />
+                        </div>
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Hospital ID (Optional)</label>
+                        <div className="relative rounded-md shadow-sm">
+                          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <FaHospital className="text-gray-400" />
+                          </div>
+                          <input
+                            type="text"
+                            name="hospital"
+                            value={formData.hospital}
+                            onChange={handleChange}
+                            className="focus:ring-indigo-500 focus:border-indigo-500 block w-full pl-10 pr-3 py-3 sm:text-sm border border-gray-300 rounded-lg"
+                            placeholder="Enter hospital ID"
+                          />
+                        </div>
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Prescription Date*</label>
+                        <div className="relative rounded-md shadow-sm">
+                          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <FaCalendarAlt className="text-gray-400" />
+                          </div>
+                          <input
+                            type="date"
+                            name="date"
+                            value={formData.date}
+                            onChange={handleChange}
+                            required
+                            className="focus:ring-indigo-500 focus:border-indigo-500 block w-full pl-10 pr-3 py-3 sm:text-sm border border-gray-300 rounded-lg"
+                          />
+                        </div>
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
+                        <select
+                          name="status"
+                          value={formData.status}
+                          onChange={handleChange}
+                          className="focus:ring-indigo-500 focus:border-indigo-500 block w-full py-3 px-3 sm:text-sm border border-gray-300 rounded-lg"
+                        >
+                          <option value="active">Active</option>
+                          <option value="completed">Completed</option>
+                          <option value="cancelled">Cancelled</option>
+                        </select>
+                      </div>
+                    </div>
+                  </motion.div>
+
+                  {/* Medications Section */}
+                  <motion.div variants={itemVariants} className="bg-gray-50 p-6 rounded-xl">
+                    <h3 className="text-lg font-semibold mb-4 text-gray-700 flex items-center">
+                      <FaPrescriptionBottleAlt className="mr-2 text-indigo-500" />
+                      Medications
+                    </h3>
+
+                    {formData.medications.map((med, index) => (
+                      <div key={index} className="mb-6 bg-white p-4 rounded-lg shadow-sm border border-gray-100">
+                        <div className="flex justify-between items-center mb-3">
+                          <h4 className="font-medium text-gray-800">Medication #{index + 1}</h4>
+                          {formData.medications.length > 1 && (
+                            <button
+                              type="button"
+                              onClick={() => handleRemoveMedication(index)}
+                              className="text-red-500 hover:text-red-700 flex items-center text-sm font-medium"
+                            >
+                              <FaMinus className="mr-1" />
+                              Remove
+                            </button>
+                          )}
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Medication Name*</label>
+                            <input
+                              type="text"
+                              name="name"
+                              value={med.name}
+                              onChange={(e) => handleMedicationChange(index, e)}
+                              required
+                              className="focus:ring-indigo-500 focus:border-indigo-500 block w-full py-2 px-3 sm:text-sm border border-gray-300 rounded-lg"
+                              placeholder="Enter medication name"
+                            />
+                          </div>
+
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Dosage</label>
+                            <input
+                              type="text"
+                              name="dosage"
+                              value={med.dosage}
+                              onChange={(e) => handleMedicationChange(index, e)}
+                              className="focus:ring-indigo-500 focus:border-indigo-500 block w-full py-2 px-3 sm:text-sm border border-gray-300 rounded-lg"
+                              placeholder="e.g., 10mg"
+                            />
+                          </div>
+
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Frequency</label>
+                            <input
+                              type="text"
+                              name="frequency"
+                              value={med.frequency}
+                              onChange={(e) => handleMedicationChange(index, e)}
+                              className="focus:ring-indigo-500 focus:border-indigo-500 block w-full py-2 px-3 sm:text-sm border border-gray-300 rounded-lg"
+                              placeholder="e.g., 3 times daily"
+                            />
+                          </div>
+
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Duration (days)</label>
+                            <input
+                              type="text"
+                              name="duration"
+                              value={med.duration}
+                              onChange={(e) => handleMedicationChange(index, e)}
+                              className="focus:ring-indigo-500 focus:border-indigo-500 block w-full py-2 px-3 sm:text-sm border border-gray-300 rounded-lg"
+                              placeholder="e.g., 7 days"
+                            />
+                          </div>
+                        </div>
+
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">Special Instructions</label>
+                          <textarea
+                            name="instructions"
+                            value={med.instructions}
+                            onChange={(e) => handleMedicationChange(index, e)}
+                            rows="2"
+                            className="focus:ring-indigo-500 focus:border-indigo-500 block w-full py-2 px-3 sm:text-sm border border-gray-300 rounded-lg"
+                            placeholder="Special instructions for this medication"
+                          />
+                        </div>
+                      </div>
+                    ))}
+
+                    <button
+                      type="button"
+                      onClick={handleAddMedication}
+                      className="inline-flex items-center px-4 py-2 border border-indigo-300 bg-indigo-50 text-indigo-600 rounded-md hover:bg-indigo-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors"
+                    >
+                      <FaPlus className="mr-2" />
+                      Add Another Medication
+                    </button>
+                  </motion.div>
+
+                  {/* Pharmacy Details Section */}
+                  <motion.div variants={itemVariants} className="bg-gray-50 p-6 rounded-xl">
+                    <h3 className="text-lg font-semibold mb-4 text-gray-700 flex items-center">
+                      <FaShoppingCart className="mr-2 text-indigo-500" />
+                      Pharmacy Details
+                    </h3>
+
+                    <div className="mb-4">
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Purchased From</label>
+                      <select
+                        name="purchasedFrom"
+                        value={formData.purchasedFrom}
+                        onChange={handleChange}
+                        className="focus:ring-indigo-500 focus:border-indigo-500 block w-full py-3 px-3 sm:text-sm border border-gray-300 rounded-lg"
+                      >
+                        <option value="not_purchased">Not Purchased Yet</option>
+                        <option value="hospital_pharmacy">Hospital Pharmacy</option>
+                        <option value="outside_pharmacy">Outside Pharmacy</option>
+                      </select>
+                    </div>
+
+                    <AnimatePresence>
+                      {formData.purchasedFrom !== 'not_purchased' && (
+                        <motion.div
+                          initial={{ opacity: 0, height: 0 }}
+                          animate={{ opacity: 1, height: 'auto' }}
+                          exit={{ opacity: 0, height: 0 }}
+                          className="space-y-4"
+                        >
+                          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div>
+                              <label className="block text-sm font-medium text-gray-700 mb-1">Pharmacy ID*</label>
+                              <div className="relative rounded-md shadow-sm">
+                                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                  <FaHospital className="text-gray-400" />
+                                </div>
+                                <input
+                                  type="text"
+                                  name="pharmacyId"
+                                  value={formData.pharmacyDetails.pharmacyId}
+                                  onChange={(e) =>
+                                    setFormData({
+                                      ...formData,
+                                      pharmacyDetails: {
+                                        ...formData.pharmacyDetails,
+                                        pharmacyId: e.target.value,
+                                      },
+                                    })
+                                  }
+                                  className="focus:ring-indigo-500 focus:border-indigo-500 block w-full pl-10 pr-3 py-2 sm:text-sm border border-gray-300 rounded-lg"
+                                  placeholder="Enter pharmacy ID"
+                                  required={formData.purchasedFrom !== 'not_purchased'}
+                                />
+                              </div>
+                            </div>
+
+                            <div>
+                              <label className="block text-sm font-medium text-gray-700 mb-1">Purchase Date*</label>
+                              <div className="relative rounded-md shadow-sm">
+                                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                  <FaCalendarAlt className="text-gray-400" />
+                                </div>
+                                <input
+                                  type="date"
+                                  name="purchaseDate"
+                                  value={formData.pharmacyDetails.purchaseDate}
+                                  onChange={(e) =>
+                                    setFormData({
+                                      ...formData,
+                                      pharmacyDetails: {
+                                        ...formData.pharmacyDetails,
+                                        purchaseDate: e.target.value,
+                                      },
+                                    })
+                                  }
+                                  className="focus:ring-indigo-500 focus:border-indigo-500 block w-full pl-10 pr-3 py-2 sm:text-sm border border-gray-300 rounded-lg"
+                                  required={formData.purchasedFrom !== 'not_purchased'}
+                                />
+                              </div>
+                            </div>
+
+                            <div>
+                              <label className="block text-sm font-medium text-gray-700 mb-1">Invoice Number*</label>
+                              <div className="relative rounded-md shadow-sm">
+                                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                  <FaFileInvoice className="text-gray-400" />
+                                </div>
+                                <input
+                                  type="text"
+                                  name="invoiceNumber"
+                                  value={formData.pharmacyDetails.invoiceNumber}
+                                  onChange={(e) =>
+                                    setFormData({
+                                      ...formData,
+                                      pharmacyDetails: {
+                                        ...formData.pharmacyDetails,
+                                        invoiceNumber: e.target.value,
+                                      },
+                                    })
+                                  }
+                                  className="focus:ring-indigo-500 focus:border-indigo-500 block w-full pl-10 pr-3 py-2 sm:text-sm border border-gray-300 rounded-lg"
+                                  placeholder="Enter invoice number"
+                                  required={formData.purchasedFrom !== 'not_purchased'}
+                                />
+                              </div>
+                            </div>
+                          </div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </motion.div>
+
+                  {/* Additional Notes */}
+                  <motion.div variants={itemVariants} className="bg-gray-50 p-6 rounded-xl">
+                    <h3 className="text-lg font-semibold mb-4 text-gray-700 flex items-center">
+                      <FaNotesMedical className="mr-2 text-indigo-500" />
+                      Additional Notes
+                    </h3>
+
+                    <div>
+                      <textarea
+                        name="notes"
+                        value={formData.notes}
+                        onChange={handleChange}
+                        rows="4"
+                        className="focus:ring-indigo-500 focus:border-indigo-500 block w-full py-2 px-3 sm:text-sm border border-gray-300 rounded-lg"
+                        placeholder="Enter any additional notes or instructions for this prescription"
+                      />
+                    </div>
+                  </motion.div>
+
+                  {/* Error Messages */}
+                  <AnimatePresence>
+                    {errorMessages.length > 0 && (
+                      <motion.div
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0 }}
+                        className="p-4 bg-red-50 border-l-4 border-red-500 text-red-700 rounded-md"
+                      >
+                        <h4 className="font-semibold mb-2">Please correct the following issues:</h4>
+                        <ul className="list-disc pl-5 space-y-1">
+                          {errorMessages.map((error, index) => (
+                            <li key={index}>{error}</li>
+                          ))}
+                        </ul>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+
+                  {/* Submit Button */}
+                  <motion.div variants={itemVariants} className="pt-5 border-t border-gray-200">
+                    <div className="flex justify-end">
+                      <button
+                        type="button"
+                        onClick={resetForm}
+                        className="bg-white py-3 px-6 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 mr-3"
+                      >
+                        Clear Form
+                      </button>
+                      <button
+                        type="submit"
+                        disabled={isSubmitting}
+                        className={`relative overflow-hidden inline-flex items-center px-6 py-3 border border-transparent text-sm font-medium rounded-md shadow-sm text-white ${
+                          isSubmitting ? 'bg-indigo-400' : 'bg-gradient-to-r from-indigo-600 to-blue-500 hover:from-indigo-700 hover:to-blue-600'
+                        } focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all duration-200`}
+                      >
+                        {isSubmitting ? (
+                          <>
+                            <svg className="animate-spin -ml-1 mr-2 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                            Submitting...
+                          </>
+                        ) : (
+                          'Create Prescription'
+                        )}
+                        <span className="absolute top-0 left-0 w-full h-full bg-white opacity-20 transform -translate-x-full hover:translate-x-0 transition-transform duration-700"></span>
+                      </button>
+                    </div>
+                  </motion.div>
+                </motion.div>
+              </form>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };

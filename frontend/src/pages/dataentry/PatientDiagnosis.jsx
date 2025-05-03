@@ -1,7 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
+import DiagnosisReport from './DiagnosisReport';
+import { FaEdit, FaTrash, FaUserMd, FaUser, FaHospital, FaCalendarAlt, FaSearch, 
+         FaFilter, FaRegFileAlt, FaPlus, FaTags, FaSort, FaSortAmountDown } from 'react-icons/fa';
+import { motion, AnimatePresence } from 'framer-motion';
 import DiagnosesDisplay from './DiagnosesDisplay'; // Import the DiagnosesDisplay component
-
 
 const PatientDiagnosis = () => {
   const [formData, setFormData] = useState({
@@ -108,19 +112,8 @@ const PatientDiagnosis = () => {
   };
 
   return (
-    
     <div className="w-full p-6">
-
-
-
-
-
-
       <DiagnosesDisplay /> {/* Add DiagnosesDisplay component here */}
-
-
-
-
       
       <h2 className="text-2xl font-bold mb-4">Create Diagnosis</h2>
       
@@ -263,8 +256,6 @@ const PatientDiagnosis = () => {
           </button>
         </div>
       </form>
-
-
     </div>
   );
 };
