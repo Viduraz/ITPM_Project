@@ -357,7 +357,7 @@ const Register = () => {
                     exit="exit"
                     className="space-y-4"
                   >
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <motion.div 
                         variants={itemVariants} 
                         className="transform transition-all duration-300 hover:scale-[1.02] focus-within:scale-[1.02]"
@@ -779,6 +779,40 @@ const Register = () => {
                                 : 'text-gray-700'
                             }`}>Pharmacy</span>
                             {formData.role === 'pharmacy' && (
+                              <svg className="absolute top-2 right-2 w-5 h-5 text-cyan-600" fill="currentColor" viewBox="0 0 20 20">
+                                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                              </svg>
+                            )}
+                          </div>
+                        </div>
+
+                        <div 
+                          className={`relative overflow-hidden rounded-xl cursor-pointer transition-all duration-300 ${
+                            formData.role === 'admin' 
+                              ? 'ring-2 ring-cyan-500 ring-offset-1' 
+                              : 'hover:shadow-md'
+                          }`}
+                          onClick={() => setFormData({...formData, role: 'admin'})}
+                        >
+                          <div className={`absolute inset-0 ${
+                            formData.role === 'admin' 
+                              ? 'bg-gradient-to-br from-cyan-100 to-blue-50' 
+                              : 'bg-white'
+                          }`}></div>
+                          <div className="relative p-4 flex flex-col items-center">
+                            <div className={`w-12 h-12 rounded-full flex items-center justify-center mb-3 ${
+                              formData.role === 'admin' 
+                                ? 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white' 
+                                : 'bg-gray-100 text-gray-500'
+                            }`}>
+                              <FaUserCheck className="text-lg" />
+                            </div>
+                            <span className={`font-medium ${
+                              formData.role === 'admin' 
+                                ? 'text-cyan-700' 
+                                : 'text-gray-700'
+                            }`}>Admin</span>
+                            {formData.role === 'admin' && (
                               <svg className="absolute top-2 right-2 w-5 h-5 text-cyan-600" fill="currentColor" viewBox="0 0 20 20">
                                 <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                               </svg>

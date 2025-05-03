@@ -68,27 +68,45 @@ export const getDataEntryProfile = async (req, res) => {
   }
 };
 
-// Create diagnosis data entry
-export const createDiagnosisDataEntry = async (req, res) => {
+// Create a new diagnosis entry
+export const createDiagnosis = async (req, res) => {
   try {
-    const { patientId, doctorId, hospitalId, symptoms, diagnosisDetails, condition, notes, followUpDate } = req.body;
-    
-    // Find the patient
-    const patient = await Patient.findOne({ userId: patientId });
+    const {
+      patientId,
+      hospitalId,
+      symptoms,
+      diagnosisDetails,
+      condition,
+      notes,
+      followUpDate
+    } = req.body;
+
+    // Check if doctor is authenticated and has a profile
+    const doctor = await Doctor.findOne({ userId: req.user._id });
+    if (!doctor) {
+      return res.status(404).json({ message: 'Doctor profile not found' });
+    }
+
+    // Validate patient
+    const patient = await Patient.findById(patientId);
     if (!patient) {
       return res.status(404).json({ message: 'Patient not found' });
     }
-    
-    // Find the doctor
-    const doctor = await Doctor.findOne({ userId: doctorId });
-    if (!doctor) {
-      return res.status(404).json({ message: 'Doctor not found' });
+
+    // Optional: validate hospital
+    let hospital = null;
+    if (hospitalId) {
+      hospital = await Hospital.findById(hospitalId);
+      if (!hospital) {
+        return res.status(404).json({ message: 'Hospital not found' });
+      }
     }
-    
-    const diagnosis = new Diagnosis({
-      patient: patient._id,
+
+    // Create new diagnosis
+    const newDiagnosis = new Diagnosis({
+      patient: patientId,
       doctor: doctor._id,
-      hospital: hospitalId,
+      hospital: hospitalId || null,
       diagnosisDate: new Date(),
       symptoms,
       diagnosisDetails,
@@ -97,81 +115,110 @@ export const createDiagnosisDataEntry = async (req, res) => {
       followUpDate
     });
 
-    await diagnosis.save();
-
-    // Record this task for the data entry operator
-    const dataEntry = await DataEntry.findOne({ userId: req.user._id });
-    if (dataEntry) {
-      dataEntry.assignedTasks.push({
-        taskType: 'Diagnosis Entry',
-        assignedBy: req.user._id,
-        assignedAt: new Date(),
-        completedAt: new Date(),
-        status: 'Completed'
-      });
-      await dataEntry.save();
-    }
+    await newDiagnosis.save();
 
     res.status(201).json({
       message: 'Diagnosis created successfully',
-      diagnosis
+      diagnosis: newDiagnosis
     });
+
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    console.error('Error creating diagnosis:', error);
+    res.status(500).json({ message: 'Server error while creating diagnosis', error: error.message });
   }
 };
 
-// Create prescription data entry
-export const createPrescriptionDataEntry = async (req, res) => {
+//create prescription
+export const createPrescription = async (req, res) => {
   try {
-    const { patientId, doctorId, hospitalId, diagnosisId, medications, notes } = req.body;
-    
-    // Find the patient
-    const patient = await Patient.findOne({ userId: patientId });
-    if (!patient) {
+    const {
+      patient,
+      doctor,
+      hospital,
+      diagnosis,
+      date,
+      medications,
+      notes,
+      status,
+      purchasedFrom,
+      pharmacyDetails,
+    } = req.body;
+
+    // Debugging: Log the request body
+    console.log('Request Body:', req.body);
+
+    // Basic validation
+    if (!patient || !doctor || !diagnosis || !medications || medications.length === 0) {
+      return res.status(400).json({ message: 'Patient, Doctor, Diagnosis, and at least one medication are required.' });
+    }
+
+    // Validate references (Patient, Doctor, Diagnosis)
+    const patientExists = await Patient.findById(patient);
+    if (!patientExists) {
       return res.status(404).json({ message: 'Patient not found' });
     }
-    
-    // Find the doctor
-    const doctor = await Doctor.findOne({ userId: doctorId });
-    if (!doctor) {
+
+    const doctorExists = await Doctor.findById(doctor);
+    if (!doctorExists) {
       return res.status(404).json({ message: 'Doctor not found' });
     }
 
-    const prescription = new Prescription({
-      patient: patient._id,
-      doctor: doctor._id,
-      hospital: hospitalId,
-      diagnosis: diagnosisId,
-      date: new Date(),
-      medications,
-      notes,
-      status: 'active',
+    const diagnosisExists = await Diagnosis.findById(diagnosis);
+    if (!diagnosisExists) {
+      return res.status(404).json({ message: 'Diagnosis not found' });
+    }
+
+    // Validate medications array structure
+    if (!Array.isArray(medications) || medications.length === 0) {
+      return res.status(400).json({ message: 'At least one medication is required.' });
+    }
+
+    medications.forEach((med, index) => {
+      if (!med.name || !med.dosage || !med.frequency || !med.duration) {
+        return res.status(400).json({ message: `Medication ${index + 1} is missing required fields.` });
+      }
     });
 
-    await prescription.save();
+// Create the prescription
+    const newPrescription = new Prescription({
+      patient,
+      doctor,
+      hospital,
+      diagnosis,
+      date: date || new Date(), // fallback if not provided
+      medications,
+      notes,
+      status,
+      purchasedFrom,
+      pharmacyDetails,
+    });
 
-    // Record this task for the data entry operator
-    const dataEntry = await DataEntry.findOne({ userId: req.user._id });
-    if (dataEntry) {
-      dataEntry.assignedTasks.push({
-        taskType: 'Prescription Entry',
-        assignedBy: req.user._id,
-        assignedAt: new Date(),
-        completedAt: new Date(),
-        status: 'Completed'
-      });
-      await dataEntry.save();
+    // Save to database
+    const savedPrescription = await newPrescription.save();
+    if (!savedPrescription) {
+      return res.status(500).json({ message: 'Error saving the prescription.' });
     }
 
     res.status(201).json({
       message: 'Prescription created successfully',
-      prescription
+      prescription: savedPrescription,
     });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    console.error('Error creating prescription:', error);
+    res.status(500).json({ message: 'Server error while creating prescription' });
   }
 };
+
+// Fetch all prescriptions (this can be extended to filter by patient, doctor, etc.)
+export const getAllPrescriptions = async (req, res) => {
+    try {
+      const patients = await Patient.find();
+      res.status(200).json({ patients });
+    } catch (error) {
+      res.status(500).json({ message: 'Error fetching patients', error });
+    }
+};
+  
 
 // Get tasks assigned to data entry operator
 export const getAssignedTasks = async (req, res) => {
@@ -186,5 +233,16 @@ export const getAssignedTasks = async (req, res) => {
     res.status(200).json({ tasks: dataEntry.assignedTasks });
   } catch (error) {
     res.status(500).json({ message: error.message });
+  }
+};
+
+// Controller to get all patients
+export const getAllPatients = async (req, res) => {
+  try {
+    const patients = await Patient.find().select('patientId name');
+    res.status(200).json({ patients });
+  } catch (error) {
+    console.error('Error fetching patients:', error);
+    res.status(500).json({ message: 'Error fetching patients' });
   }
 };

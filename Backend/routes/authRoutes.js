@@ -6,7 +6,8 @@ import {
   registerDoctor, 
   registerPharmacy, 
   registerLaboratory,
-  registerDataEntry
+  registerDataEntry,
+  getMe // Add this import
 } from '../controllers/authController.js';
 import { authenticateToken, authorizeRoles } from '../middleware/auth.js';
 
@@ -14,6 +15,7 @@ const router = express.Router();
 
 router.post('/register', register);
 router.post('/login', login);
+router.get('/me', authenticateToken, getMe); // Add this route
 router.post('/register/patient', authenticateToken, registerPatient);
 router.post('/register/doctor', authenticateToken, registerDoctor);
 router.post('/register/pharmacy', authenticateToken, authorizeRoles('admin'), registerPharmacy);
