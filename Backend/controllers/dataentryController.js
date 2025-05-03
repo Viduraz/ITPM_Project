@@ -140,28 +140,29 @@ export const getAllDiagnoses = async (req, res) => {
   try {
     const diagnoses = await Diagnosis.find()
       .populate({
-        path: 'patientId', 
+        path: 'patientId',
         populate: {
-          path: 'userId',  // Populate the userId field to get firstName and lastName
-          select: 'firstName lastName',  // Only select firstName and lastName
-        },
+          path: 'userId',
+          model: 'User',
+          select: 'firstName lastName'
+        }
       })
       .populate({
         path: 'doctorId',
         populate: {
           path: 'userId',
-          select: 'firstName lastName',
-        },
+          model: 'User',
+          select: 'firstName lastName'
+        }
       })
       .populate('hospitalId', 'name');  // Populating hospitalId with hospital name
 
-    res.json(diagnoses);
+    res.status(200).json(diagnoses);
   } catch (error) {
     console.error('Error fetching diagnoses:', error);
     res.status(500).json({ message: 'Error fetching diagnoses' });
   }
 };
-
 
 
 //get diagnosis by id
