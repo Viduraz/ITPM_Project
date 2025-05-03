@@ -5,18 +5,22 @@ import Patient from '../models/Patient.js';
 import Diagnosis from '../models/Diagnosis.js';
 import Prescription from '../models/Prescription.js';
 import LabReport from '../models/LabReport.js';
+import PDFDocument from 'pdfkit';
+import fs from 'fs';
 
 // Get patient profile
 export const getPatientProfile = async (req, res) => {
+  console.log(req.params.id)
   try {
-    const patientId = req.params.id || req.user._id;
+    const patientId = req.params.id || req.body.user._id;
     
-    const patient = await Patient.findOne({ userId: patientId })
-      .populate('userId', 'firstName lastName email contactNumber profileImage');
+    const patient = await User.findOne({ _id: patientId, role: 'patient' })
+      // .populate('userId', 'firstName lastName email contactNumber profileImage');
     
     if (!patient) {
       return res.status(404).json({ message: 'Patient profile not found' });
     }
+    console.log(patient)
 
     res.status(200).json({ patient });
   } catch (error) {
@@ -69,6 +73,7 @@ export const searchDoctors = async (req, res) => {
 // Get patient's medical history
 export const getMedicalHistory = async (req, res) => {
   try {
+    console.log(req.user._id)
     const patientId = req.params.id || req.user._id;
     
     // Find the patient
@@ -197,5 +202,80 @@ export const downloadReport = async (req, res) => {
     });
   } catch (error) {
     res.status(500).json({ message: error.message });
+  }
+};
+
+// Generate and download patient report
+export const generatePatientReport = async (req, res) => {
+  try {
+    const patientId = req.params.id;
+
+    // Fetch patient details
+    const patient = await Patient.findOne({ userId: patientId }).populate('userId', 'firstName lastName email');
+    if (!patient) {
+      return res.status(404).json({ message: 'Patient not found' });
+    }
+
+    // Create a new PDF document
+    const doc = new PDFDocument();
+
+    // Set the file name
+    const fileName = `Patient_Report_${patient.userId.firstName}_${patient.userId.lastName}.pdf`;
+
+    // Set the response headers for downloading the file
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `attachment; filename=${fileName}`);
+
+    // Pipe the PDF document to the response
+    doc.pipe(res);
+
+    // Add content to the PDF
+    doc.fontSize(20).text('Patient Report', { align: 'center' });
+    doc.moveDown();
+
+    doc.fontSize(14).text(`Name: ${patient.userId.firstName} ${patient.userId.lastName}`);
+    doc.text(`Email: ${patient.userId.email}`);
+    doc.text(`Date of Birth: ${new Date(patient.dateOfBirth).toLocaleDateString()}`);
+    doc.text(`Gender: ${patient.gender}`);
+    doc.text(`Blood Type: ${patient.bloodType || 'N/A'}`);
+    doc.moveDown();
+
+    doc.fontSize(16).text('Allergies:', { underline: true });
+    if (patient.allergies.length > 0) {
+      patient.allergies.forEach((allergy, index) => {
+        doc.text(`${index + 1}. ${allergy}`);
+      });
+    } else {
+      doc.text('No allergies recorded.');
+    }
+    doc.moveDown();
+
+    doc.fontSize(16).text('Medical History:', { underline: true });
+    if (patient.medicalHistory.length > 0) {
+      patient.medicalHistory.forEach((history, index) => {
+        doc.text(`${index + 1}. Condition: ${history.condition}`);
+        doc.text(`   Diagnosed At: ${new Date(history.diagnosedAt).toLocaleDateString()}`);
+        doc.text(`   Notes: ${history.notes}`);
+        doc.moveDown();
+      });
+    } else {
+      doc.text('No medical history recorded.');
+    }
+    doc.moveDown();
+
+    doc.fontSize(16).text('Emergency Contact:', { underline: true });
+    if (patient.emergencyContact) {
+      doc.text(`Name: ${patient.emergencyContact.name}`);
+      doc.text(`Relationship: ${patient.emergencyContact.relationship}`);
+      doc.text(`Contact Number: ${patient.emergencyContact.contactNumber}`);
+    } else {
+      doc.text('No emergency contact recorded.');
+    }
+
+    // Finalize the PDF and end the stream
+    doc.end();
+  } catch (error) {
+    console.error('Error generating patient report:', error);
+    res.status(500).json({ message: 'Failed to generate patient report.' });
   }
 };

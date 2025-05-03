@@ -1,20 +1,123 @@
-<<<<<<< HEAD
-// src/pages/patient/MedicalHistory.jsx
-=======
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../pages/context/AuthContext';
-import { FaCalendarAlt, FaFileMedical, FaUserMd, FaPills, FaFlask, FaHeartbeat } from 'react-icons/fa';
+import { FaCalendarAlt, FaFileMedical, FaUserMd, FaPills, FaFlask, FaHeartbeat, FaFilePdf } from 'react-icons/fa';
+import axios from 'axios';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
 
->>>>>>> 206a25183e515dc6bf7a5f0cef4b87b64c7a3a36
 const PatientDashboard = () => {
   const { user } = useAuth();
   const [isLoading, setIsLoading] = useState(true);
   const [healthData, setHealthData] = useState(null);
+  const [patientData, setPatientData] = useState(null);
 
-  // Simulated data - in real app, fetch from API
+  const fetchPatientData = async () => {
+    try {
+      const data = await axios.get(`http://localhost:3000/api/patient/profile/${user.id}`);
+      setPatientData(data.data.patient);
+    } catch (error) {
+      console.error("Error fetching patient data:", error);
+    }
+  };
+
+  const generateReport = () => {
+    const doc = new jsPDF();
+    const pageWidth = doc.internal.pageSize.width;
+    
+    // Title
+    doc.setFontSize(18);
+    doc.setTextColor(0, 0, 128);
+    doc.text("Patient Report", pageWidth / 2, 15, { align: 'center' });
+    
+    // Patient Info
+    if (patientData) {
+      doc.setFontSize(12);
+      doc.setTextColor(0, 0, 0);
+      doc.text(`Name: ${patientData.firstName} ${patientData.lastName}`, 20, 30);
+      doc.text(`Email: ${patientData.email}`, 20, 37);
+    }
+    
+    if (healthData) {
+      // Health Summary Table
+      doc.setFontSize(14);
+      doc.setTextColor(0, 0, 128);
+      doc.text("Health Summary", 20, 50);
+      
+      autoTable(doc, {
+        startY: 55,
+        head: [['Metric', 'Value']],
+        body: [
+          ['Blood Pressure', healthData.vitals.bloodPressure],
+          ['Heart Rate', healthData.vitals.heartRate],
+          ['Temperature', healthData.vitals.temperature],
+          ['Last Updated', healthData.vitals.lastUpdated]
+        ],
+        theme: 'grid',
+        headStyles: { fillColor: [65, 105, 225], textColor: 255 },
+        margin: { left: 20, right: 20 },
+        styles: { overflow: 'linebreak' }
+      });
+      
+      // Next Appointment Table
+      let finalY = doc.lastAutoTable.finalY + 15;
+      doc.setFontSize(14);
+      doc.setTextColor(0, 0, 128);
+      doc.text("Next Appointment", 20, finalY);
+      
+      autoTable(doc, {
+        startY: finalY + 5,
+        head: [['Doctor', 'Specialization', 'Date', 'Time']],
+        body: [
+          [
+            healthData.nextAppointment.doctorName,
+            healthData.nextAppointment.specialization,
+            healthData.nextAppointment.date,
+            healthData.nextAppointment.time
+          ]
+        ],
+        theme: 'grid',
+        headStyles: { fillColor: [65, 105, 225], textColor: 255 },
+        margin: { left: 20, right: 20 },
+        styles: { overflow: 'linebreak' }
+      });
+      
+      // Recent Diagnoses
+      finalY = doc.lastAutoTable.finalY + 15;
+      doc.setFontSize(14);
+      doc.setTextColor(0, 0, 128);
+      doc.text("Recent Diagnoses", 20, finalY);
+      
+      finalY += 8;
+      doc.setFontSize(11);
+      doc.setTextColor(0, 0, 0);
+      
+      healthData.recentDiagnoses.forEach((diagnosis, index) => {
+        doc.text(`${index + 1}. ${diagnosis.condition} (Date: ${diagnosis.date}, Doctor: ${diagnosis.doctor})`, 
+          20, finalY + (index * 7));
+      });
+      
+      // Active Medications
+      finalY = finalY + (healthData.recentDiagnoses.length * 7) + 15;
+      doc.setFontSize(14);
+      doc.setTextColor(0, 0, 128);
+      doc.text("Active Medications", 20, finalY);
+      
+      finalY += 8;
+      doc.setFontSize(11);
+      doc.setTextColor(0, 0, 0);
+      
+      healthData.recentPrescriptions.forEach((prescription, index) => {
+        doc.text(`${index + 1}. ${prescription.medication} (Date: ${prescription.date}, Instructions: ${prescription.instructions})`, 
+          20, finalY + (index * 7));
+      });
+    }
+
+    doc.save("Patient_Report.pdf");
+  };
+
   useEffect(() => {
-    // Simulate API call
+    fetchPatientData();
     setTimeout(() => {
       setHealthData({
         nextAppointment: {
@@ -55,30 +158,31 @@ const PatientDashboard = () => {
   }
 
   return (
-<<<<<<< HEAD
-    <div className="p-4">
-      <h2 className="text-2xl font-bold mb-4">Medical History</h2>
-      <p>View your medical records here.</p>
-=======
     <div className="pb-8">
       {/* Hero Section */}
       <div className="bg-gradient-to-r from-indigo-600 to-indigo-400 text-white p-6 rounded-lg shadow-md mb-6">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
           <div>
-            <h1 className="text-2xl md:text-3xl font-bold">Welcome, {user?.firstName || 'Patient'}!</h1>
+            <h1 className="text-2xl md:text-3xl font-bold">Welcome, {patientData?.firstName + " " + patientData?.lastName || 'Patient'}!</h1>
             <p className="mt-2">
               {new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
             </p>
           </div>
           <div className="flex flex-col md:flex-row gap-3">
-            <Link 
-              to="/patient/find-doctors" 
+            <button
+              onClick={generateReport}
+              className="bg-red-600 text-white font-medium px-4 py-2 rounded-md hover:bg-red-700 transition flex items-center gap-2"
+            >
+              <FaFilePdf /> Generate Report
+            </button>
+            <Link
+              to="/patient/find-doctors"
               className="bg-white text-indigo-600 font-medium px-4 py-2 rounded-md hover:bg-gray-100 transition flex items-center gap-2"
             >
               <FaUserMd /> Find Doctors
             </Link>
-            <Link 
-              to="/patient/medical-history" 
+            <Link
+              to="/patient/medical-history"
               className="bg-indigo-700 text-white font-medium px-4 py-2 rounded-md hover:bg-indigo-800 transition flex items-center gap-2"
             >
               <FaFileMedical /> Medical History
@@ -211,20 +315,40 @@ const PatientDashboard = () => {
             </Link>
           </div>
           
-          <div className="space-y-4">
-            {healthData.recentPrescriptions.map(prescription => (
-              <div key={prescription.id} className="border-b pb-3 last:border-0">
-                <div className="flex justify-between">
-                  <h3 className="font-medium">{prescription.medication}</h3>
-                  <span className="text-sm text-gray-500">{prescription.date}</span>
-                </div>
-                <p className="text-gray-600 text-sm mt-1">{prescription.instructions}</p>
-              </div>
-            ))}
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Medication
+                  </th>
+                  <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Instructions
+                  </th>
+                  <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Date
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {healthData.recentPrescriptions.map(prescription => (
+                  <tr key={prescription.id} className="hover:bg-gray-50">
+                    <td className="px-4 py-3 text-sm font-medium text-gray-900">
+                      {prescription.medication}
+                    </td>
+                    <td className="px-4 py-3 text-sm text-gray-500">
+                      {prescription.instructions}
+                    </td>
+                    <td className="px-4 py-3 text-sm text-gray-500">
+                      {prescription.date}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         </div>
       </div>
->>>>>>> 206a25183e515dc6bf7a5f0cef4b87b64c7a3a36
     </div>
   );
 };
