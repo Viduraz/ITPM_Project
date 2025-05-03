@@ -1,7 +1,8 @@
 import express from 'express';
 import { 
   getDoctorProfile, 
-  updateAvailability, 
+  updateAvailability,
+  updateGlobalAvailability, // Add this import
   searchPatients, 
   getPatientMedicalHistory,
   createDiagnosis,
@@ -19,6 +20,7 @@ router.use(authorizeRoles('doctor'));
 router.get('/profile', getDoctorProfile);
 router.get('/profile/:id', getDoctorProfile);
 router.put('/availability', updateAvailability);
+router.put('/availability/global', updateGlobalAvailability); // Add this new route
 router.get('/patients/search', searchPatients);
 router.get('/patients/:patientId/medical-history', getPatientMedicalHistory);
 router.post('/diagnosis', createDiagnosis);

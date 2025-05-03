@@ -1,56 +1,139 @@
-import React, { useState } from 'react';
-import { useLocation } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useLocation, useParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { FaStar } from 'react-icons/fa';
+import api from '../../utils/api'; // Import the API utility
 
 const DoctorAvailability = () => {
   const location = useLocation();
-  // Provide a fallback dummy doctor if none is passed in location.state
-  const doctor = location.state?.doctor || {
-    image: 'https://via.placeholder.com/150',
-    name: 'Dr. Example',
-    title: 'Allergy Specialist',
-    experience: '10 years',
-    specialization: 'Allergy and Immunology',
-    sessions: [
-      { date: 'March 29, 2025', time: '01:00 PM', location: 'ASIRI Hospital - Colombo', appointments: 25, status: 'FULL' },
-      { date: 'March 31, 2025', time: '06:30 AM', location: 'ASIRI Hospital - Colombo', appointments: 9, status: 'FULL' },
-      { date: 'April 05, 2025', time: '01:00 PM', location: 'ASIRI Hospital - Colombo', appointments: 4, status: 'AVAILABLE' }
-    ],
-    otherLocations: [
-      'ASIRI Hospital - Galle',
-      'ASIRI Surgical Hospital - Kirimandala Mw - Colombo 05',
-      'Body Doc Medicare - Malabe'
-    ]
-  };
-
+  const { doctorId } = useParams();
+  const [doctor, setDoctor] = useState(location.state?.doctor || {});
+  const [loading, setLoading] = useState(!location.state?.doctor);
   const [rating, setRating] = useState(0);
   const [review, setReview] = useState('');
+  const [reviews, setReviews] = useState([]);
+  const [error, setError] = useState(null);
 
-  // Dummy reviews data
-  const dummyReviews = [
-    {
-      name: "John D.",
-      rating: 5,
-      date: "March 15, 2024",
-      comment: "Excellent doctor! Very knowledgeable and patient in explaining everything.",
-      verified: true
-    },
-    {
-      name: "Sarah M.",
-      rating: 4,
-      date: "March 10, 2024",
-      comment: "Professional and caring. Highly recommend for anyone looking for a specialist.",
-      verified: true
-    },
-    {
-      name: "Robert K.",
-      rating: 5,
-      date: "March 5, 2024",
-      comment: "Great experience overall. The doctor took time to address all my concerns.",
-      verified: true
+  // Fetch doctor data if not provided in location state
+  useEffect(() => {
+    const fetchDoctorData = async () => {
+      if (!location.state?.doctor && doctorId) {
+        try {
+          setLoading(true);
+          const token = localStorage.getItem('token');
+          const response = await api.getDoctorProfile(doctorId, token);
+          
+          if (response.data && response.data.doctor) {
+            const doctorData = transformDoctorData(response.data.doctor);
+            setDoctor(doctorData);
+          }
+        } catch (err) {
+          console.error('Error fetching doctor data:', err);
+          setError('Failed to load doctor information. Please try again later.');
+        } finally {
+          setLoading(false);
+        }
+      }
+      
+      // Fetch reviews - this would be a real API call in production
+      // Using dummy data for now
+      setReviews([
+        {
+          name: "John D.",
+          rating: 5,
+          date: "March 15, 2024",
+          comment: "Excellent doctor! Very knowledgeable and patient in explaining everything.",
+          verified: true
+        },
+        {
+          name: "Sarah M.",
+          rating: 4,
+          date: "March 10, 2024",
+          comment: "Professional and caring. Highly recommend for anyone looking for a specialist.",
+          verified: true
+        },
+        {
+          name: "Robert K.",
+          rating: 5,
+          date: "March 5, 2024",
+          comment: "Great experience overall. The doctor took time to address all my concerns.",
+          verified: true
+        }
+      ]);
+    };
+
+    fetchDoctorData();
+  }, [doctorId, location.state]);
+
+  // Transform doctor data from backend format to frontend format
+  const transformDoctorData = (backendDoctor) => {
+    // Extract user information
+    const user = backendDoctor.userId || {};
+    const name = `Dr. ${user.firstName || ''} ${user.lastName || ''}`.trim();
+    
+    // Create sessions from hospitalAffiliations
+    const sessions = backendDoctor.hospitalAffiliations.map(affiliation => {
+      const hospital = affiliation.hospital || {};
+      return {
+        date: new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }),
+        time: '01:00 PM', // Default time - in production, this would come from the backend
+        location: hospital.name || 'Unknown Hospital',
+        appointments: Math.floor(Math.random() * 20) + 1, // Random number for demo
+        status: affiliation.isAvailableToday ? 'AVAILABLE' : 'UNAVAILABLE'
+      };
+    });
+
+    // Other locations - hospitals where the doctor is not available today
+    const otherLocations = backendDoctor.hospitalAffiliations
+      .filter(affiliation => !affiliation.isAvailableToday)
+      .map(affiliation => affiliation.hospital?.name || 'Unknown Hospital');
+
+    return {
+      image: user.profileImage || 'https://via.placeholder.com/150',
+      name: name,
+      title: backendDoctor.qualifications?.[0]?.degree || 'Specialist',
+      experience: `${backendDoctor.experience || 'N/A'} years`,
+      specialization: backendDoctor.specialization || 'General Medicine',
+      sessions: sessions.length > 0 ? sessions : [
+        { date: 'No upcoming sessions', time: '', location: '', appointments: 0, status: 'UNAVAILABLE' }
+      ],
+      otherLocations: otherLocations.length > 0 ? otherLocations : ['No other locations']
+    };
+  };
+
+  const handleSubmitReview = async (e) => {
+    e.preventDefault();
+    
+    if (rating === 0) {
+      alert('Please select a rating');
+      return;
     }
-  ];
+    
+    // In production, this would be an API call to save the review
+    alert(`Thank you for your feedback! Your review has been submitted.`);
+    
+    // Reset form
+    setRating(0);
+    setReview('');
+  };
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center min-h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-indigo-500"></div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex justify-center items-center min-h-screen">
+        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
+          <p>{error}</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <motion.div 
@@ -122,7 +205,7 @@ const DoctorAvailability = () => {
                 {doctor.sessions?.map((session, index) => (
                   <tr key={index} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {session.date} - {session.time}
+                      {session.date} {session.time ? `- ${session.time}` : ''}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                       {session.location}
@@ -192,13 +275,13 @@ const DoctorAvailability = () => {
           </div>
           <div className="flex items-center">
             <span className="text-2xl font-bold text-yellow-400">4.8</span>
-            <span className="text-gray-500 text-sm ml-2">(125 reviews)</span>
+            <span className="text-gray-500 text-sm ml-2">({reviews.length} reviews)</span>
           </div>
         </h2>
 
         {/* Review Cards */}
         <div className="space-y-6">
-          {dummyReviews.map((review, index) => (
+          {reviews.map((review, index) => (
             <motion.div
               key={index}
               initial={{ opacity: 0, y: 20 }}
@@ -246,7 +329,7 @@ const DoctorAvailability = () => {
           <span className="bg-yellow-100 p-2 rounded-full mr-2">⭐</span>
           Rate & Review
         </h2>
-        <form className="space-y-6">
+        <form className="space-y-6" onSubmit={handleSubmitReview}>
           <div>
             <label className="block text-gray-700 mb-2">Rating</label>
             <div className="flex gap-2">

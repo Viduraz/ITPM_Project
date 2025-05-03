@@ -1,7 +1,9 @@
 // src/pages/patient/DoctorSearch.jsx
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useParams, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import axios from 'axios';
+import api from '../../utils/api'; // Import the API utility
 
 // 1. Define your specialties
 const specialties = [
@@ -238,6 +240,47 @@ const DoctorSearch = () => {
 
   // Add this near other state declarations
   const [searchQuery, setSearchQuery] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [apiDoctors, setApiDoctors] = useState([]);
+
+  // Add an effect to fetch real doctors from API when the component loads
+  useEffect(() => {
+    const fetchDoctors = async () => {
+      try {
+        setIsLoading(true);
+        const token = localStorage.getItem('token');
+        
+        // Fetch doctors using the API utility
+        const response = await api.searchDoctors('', null, token);
+        
+        if (response.data && response.data.doctors) {
+          // Transform backend data to match our frontend structure
+          const transformedDoctors = response.data.doctors.map(doctor => {
+            const user = doctor.userId || {};
+            return {
+              id: doctor._id,
+              name: `Dr. ${user.firstName || ''} ${user.lastName || ''}`.trim(),
+              title: doctor.qualifications?.[0]?.degree || 'Specialist',
+              specialty: doctor.specialization || 'General Medicine',
+              image: user.profileImage || 'https://xsgames.co/randomusers/assets/avatars/male/1.jpg',
+              rating: (Math.random() * (5 - 4) + 4).toFixed(1), // Random rating between 4.0 and 5.0
+              experience: `${doctor.experience || '5'}+ years`,
+              specialization: doctor.specialization || 'General Medicine'
+            };
+          });
+          
+          setApiDoctors(transformedDoctors);
+        }
+      } catch (err) {
+        console.error('Error fetching doctors:', err);
+        // Fall back to mock data on error
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchDoctors();
+  }, []);
 
   // 4. Get doctors for the selected specialty
   const doctors = specialty && doctorsData[specialty] ? doctorsData[specialty] : [];
@@ -268,29 +311,46 @@ const DoctorSearch = () => {
   };
 
   const handleViewProfile = (doctor) => {
-    navigate('/doctor-availability', { state: { doctor } });
+    // If this is a real doctor from API, navigate with the ID
+    if (doctor._id) {
+      navigate(`/doctor-availability/${doctor._id}`, { state: { doctor } });
+    } else {
+      // For mock data doctors
+      navigate('/doctor-availability', { state: { doctor } });
+    }
   };
 
-  // Add this function before the return statement
+  // Update the filteredDoctors function
   const filteredDoctors = () => {
-    let results = specialty ? doctors : featuredDoctors;
+    // Use API doctors if available, otherwise use mock data
+    let allDoctors = apiDoctors.length > 0 ? apiDoctors : (specialty ? doctors : featuredDoctors);
+    
     if (searchQuery) {
       const query = searchQuery.toLowerCase();
-      return results.filter(doc => 
+      return allDoctors.filter(doc => 
         doc.name.toLowerCase().includes(query) ||
         (doc.specialty && doc.specialty.toLowerCase().includes(query)) ||
         doc.title.toLowerCase().includes(query) ||
-        // Also search in specialization field if it exists
         (doc.specialization && doc.specialization.toLowerCase().includes(query)) ||
-        // Search in the doctor's full specialty name from specialties array
         specialties.some(spec => 
           spec.name.toLowerCase().includes(query) && 
           (doc.specialty === spec.id || doc.specialty === spec.name)
         )
       );
     }
-    return results;
+    return allDoctors;
   };
+
+  // ...keep existing return statement...
+  
+  // Update the loading state rendering
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center min-h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-indigo-500"></div>
+      </div>
+    );
+  }
 
   return (
     <motion.div 

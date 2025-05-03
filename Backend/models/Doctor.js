@@ -25,6 +25,14 @@ const doctorSchema = new mongoose.Schema({
       default: false
     }
   }],
+  availabilitySchedule: [{
+    date: String,
+    isAvailable: Boolean,
+    hours: {
+      from: String,
+      to: String
+    }
+  }],
   experience: {
     type: Number,  // In years
     default: 0
