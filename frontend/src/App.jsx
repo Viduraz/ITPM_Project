@@ -45,6 +45,8 @@ import PatientDiagnosis from "./pages/dataentry/PatientDiagnosis.jsx";
 import PatientPrescription from "./pages/dataentry/PatientPrescription.jsx";
 import DoctorLogin from "./pages/doctor/DoctorLogin.jsx";
 import DoctorRegister from "./pages/doctor/DoctorRegister.jsx";
+import PatientEditForm from "./admin/PatientEditForm"; 
+import PatientAddForm from "./admin/PatientAddForm"; // Add this import
 
 // Protected Route Component
 const ProtectedRoute = ({ children, allowedRoles }) => {
@@ -122,10 +124,10 @@ function App() {
           <Route path="/" element={<Home />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
-
+        
           {/* Dashboard Redirect */}
           <Route path="/dashboard" element={<DashboardRedirect />} />
-
+ 
           {/* Patient Routes */}
           <Route
             path="/patient/dashboard"
@@ -137,6 +139,7 @@ function App() {
               </ProtectedRoute>
             }
           />
+          
           <Route
             path="/patient/medical-history"
             element={
@@ -313,6 +316,17 @@ function App() {
               </ProtectedRoute>
             }
           />
+          {/* Add the new route for PatientEditForm */}
+          <Route
+            path="/admin/patients/edit/:id"
+            element={
+              <ProtectedRoute allowedRoles={["admin"]}>
+                <DashboardLayout>
+                  <PatientEditForm />
+                </DashboardLayout>
+              </ProtectedRoute>
+            }
+          />
           <Route
             path="/admin/users"
             element={
@@ -323,6 +337,17 @@ function App() {
               </ProtectedRoute>
             }
           />
+
+<Route
+  path="/admin/patients/add"
+  element={
+    <ProtectedRoute allowedRoles={["admin"]}>
+      <DashboardLayout>
+        <PatientAddForm />
+      </DashboardLayout>
+    </ProtectedRoute>
+  }
+/>
           <Route
             path="/admin/stats"
             element={
