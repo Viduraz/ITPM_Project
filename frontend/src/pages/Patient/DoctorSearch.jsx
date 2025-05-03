@@ -1,11 +1,14 @@
 // src/pages/patient/DoctorSearch.jsx
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import axios from 'axios';
 
 const DoctorSearch = () => {
+  const { specialty } = useParams();
   const navigate = useNavigate();
+  const [searchQuery, setSearchQuery] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
   const [loading, setLoading] = useState(false);
   const [doctors, setDoctors] = useState([]);
   const [error, setError] = useState(null);
