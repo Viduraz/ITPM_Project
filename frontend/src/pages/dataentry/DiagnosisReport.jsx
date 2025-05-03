@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
+import { FaFileDownload, FaFileCsv, FaFilePdf, FaSearch, FaSyncAlt, FaHospital, FaUserMd, FaUser } from 'react-icons/fa';
 
 const DiagnosisReport = () => {
   const [diagnoses, setDiagnoses] = useState([]);
@@ -9,23 +10,28 @@ const DiagnosisReport = () => {
   const [loading, setLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState('');
   const [conditionFilter, setConditionFilter] = useState('');
+  const [showExportOptions, setShowExportOptions] = useState(false);
 
-  // Fetch diagnoses data from API
+  // Fetch diagnoses with error handling and retry mechanism
   useEffect(() => {
-    const fetchDiagnoses = async () => {
+    const fetchDiagnoses = async (retryCount = 0) => {
       try {
         const token = localStorage.getItem('token');
+        if (!token) throw new Error('Authentication token not found');
+
         const response = await axios.get('http://localhost:3000/api/dataentry/diagnoses', {
-          headers: {
-            Authorization: token ? `Bearer ${token}` : '',
-          },
+          headers: { Authorization: `Bearer ${token}` },
         });
 
         setDiagnoses(response.data);
         setFilteredDiagnoses(response.data);
       } catch (error) {
         console.error('Error fetching diagnoses:', error);
-        setErrorMessage('An error occurred while fetching diagnoses.');
+        if (retryCount < 3) {
+          setTimeout(() => fetchDiagnoses(retryCount + 1), 1000 * (retryCount + 1));
+        } else {
+          setErrorMessage('Failed to fetch diagnoses. Please try again later.');
+        }
       } finally {
         setLoading(false);
       }
@@ -109,86 +115,108 @@ const DiagnosisReport = () => {
     doc.save('diagnosis_report.pdf');
   };
 
-  // Loading
-  if (loading) {
-    return (
-      <div className="flex justify-center items-center h-screen">
-        <p className="text-xl text-gray-500">Loading diagnoses...</p>
-      </div>
-    );
-  }
-
-  // Error
-  if (errorMessage) {
-    return (
-      <div className="bg-red-100 text-red-700 p-4 rounded-md mx-auto mt-6 max-w-xl text-center">
-        <p>{errorMessage}</p>
-      </div>
-    );
-  }
-
-  // UI
   return (
-    <div className="max-w-6xl mx-auto px-6 py-10">
-      <h2 className="text-3xl font-bold text-gray-800 mb-6">Diagnosis Report</h2>
-
-      {/* Filter input and All button */}
-      <div className="mb-6 flex flex-col sm:flex-row sm:items-center gap-4">
-        <input
-          type="text"
-          placeholder="Filter by condition..."
-          value={conditionFilter}
-          onChange={(e) => handleConditionFilter(e.target.value)}
-          className="border border-gray-300 px-4 py-2 rounded-lg w-full sm:w-80"
-        />
-        <button
-          onClick={() => handleConditionFilter('')}
-          className="bg-gray-500 hover:bg-gray-600 text-white text-sm px-4 py-2 rounded-lg"
-        >
-          Show All
-        </button>
-      </div>
-
-      {/* Export Buttons */}
-      <div className="mb-6 flex gap-4">
-        <button
-          onClick={exportToCSV}
-          className="bg-green-500 hover:bg-green-600 text-white text-sm px-4 py-2 rounded-lg"
-        >
-          Export to CSV
-        </button>
-        <button
-          onClick={exportToPDF}
-          className="bg-blue-500 hover:bg-blue-600 text-white text-sm px-4 py-2 rounded-lg"
-        >
-          Export to PDF
-        </button>
-      </div>
-
-      {/* Diagnoses list */}
-      {filteredDiagnoses.length === 0 ? (
-        <div className="text-center text-gray-600">No diagnoses match the filter.</div>
-      ) : (
-        <div className="space-y-6">
-          {filteredDiagnoses.map((diagnosis) => (
-            <div
-              key={diagnosis._id}
-              className="bg-white shadow-lg rounded-xl p-6 border border-gray-200"
-            >
-              <h3 className="text-xl font-semibold text-blue-600 mb-2">{diagnosis.condition}</h3>
-              <p><strong>Details:</strong> {diagnosis.diagnosisDetails}</p>
-              <p><strong>Symptoms:</strong> {diagnosis.symptoms?.join(', ') || 'N/A'}</p>
-              <p><strong>Notes:</strong> {diagnosis.notes || 'No additional notes'}</p>
-              <p><strong>Follow-up:</strong> {diagnosis.followUpDate ? new Date(diagnosis.followUpDate).toLocaleDateString() : 'Not scheduled'}</p>
-              <div className="mt-4 text-sm text-gray-700">
-                <p><strong>Patient:</strong> {diagnosis.patientId?.userId?.firstName || 'Unknown'} {diagnosis.patientId?.userId?.lastName || ''}</p>
-                <p><strong>Doctor:</strong> {diagnosis.doctorId?.userId?.firstName || 'Unknown'} {diagnosis.doctorId?.userId?.lastName || ''}</p>
-                <p><strong>Hospital:</strong> {diagnosis.hospitalId?.name || 'N/A'}</p>
+    <div className="min-h-screen bg-gray-50 py-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="bg-white rounded-2xl shadow-xl p-6 mb-8">
+          <div className="flex flex-col md:flex-row md:items-center justify-between mb-8">
+            <h1 className="text-3xl font-bold text-gray-900 mb-4 md:mb-0">
+              Diagnosis Reports
+            </h1>
+            <div className="flex flex-col sm:flex-row gap-4">
+              <div className="relative">
+                <input
+                  type="text"
+                  placeholder="Filter by condition..."
+                  value={conditionFilter}
+                  onChange={(e) => handleConditionFilter(e.target.value)}
+                  className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+                <FaSearch className="absolute left-3 top-3 text-gray-400" />
+              </div>
+              <div className="relative">
+                <button
+                  onClick={() => setShowExportOptions(!showExportOptions)}
+                  className="w-full sm:w-auto bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center gap-2"
+                >
+                  <FaFileDownload />
+                  Export Options
+                </button>
+                {showExportOptions && (
+                  <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg z-10 border border-gray-200">
+                    <button
+                      onClick={exportToCSV}
+                      className="w-full px-4 py-2 text-left hover:bg-gray-100 flex items-center gap-2"
+                    >
+                      <FaFileCsv className="text-green-600" />
+                      Export to CSV
+                    </button>
+                    <button
+                      onClick={exportToPDF}
+                      className="w-full px-4 py-2 text-left hover:bg-gray-100 flex items-center gap-2"
+                    >
+                      <FaFilePdf className="text-red-600" />
+                      Export to PDF
+                    </button>
+                  </div>
+                )}
               </div>
             </div>
-          ))}
+          </div>
+
+          {loading ? (
+            <div className="flex justify-center items-center h-64">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+            </div>
+          ) : errorMessage ? (
+            <div className="bg-red-50 border-l-4 border-red-500 p-4 mb-4">
+              <div className="flex">
+                <div className="flex-shrink-0">
+                  <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                  </svg>
+                </div>
+                <div className="ml-3">
+                  <p className="text-sm text-red-700">{errorMessage}</p>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+              {filteredDiagnoses.map((diagnosis) => (
+                <div
+                  key={diagnosis._id}
+                  className="bg-white rounded-xl shadow-sm border border-gray-200 hover:shadow-md transition-shadow duration-200"
+                >
+                  <div className="p-6">
+                    <div className="flex items-center justify-between mb-4">
+                      <h3 className="text-lg font-semibold text-blue-600">{diagnosis.condition}</h3>
+                      <span className="px-3 py-1 text-xs font-medium bg-blue-100 text-blue-800 rounded-full">
+                        {new Date(diagnosis.followUpDate).toLocaleDateString()}
+                      </span>
+                    </div>
+                    <div className="space-y-3 text-sm">
+                      <p className="text-gray-600 line-clamp-2">{diagnosis.diagnosisDetails}</p>
+                      <div className="flex items-center text-gray-500">
+                        <FaUser className="mr-2" />
+                        <span>{`${diagnosis.patientId?.userId?.firstName || 'Unknown'} ${diagnosis.patientId?.userId?.lastName || ''}`}</span>
+                      </div>
+                      <div className="flex items-center text-gray-500">
+                        <FaUserMd className="mr-2" />
+                        <span>{`${diagnosis.doctorId?.userId?.firstName || 'Unknown'} ${diagnosis.doctorId?.userId?.lastName || ''}`}</span>
+                      </div>
+                      <div className="flex items-center text-gray-500">
+                        <FaHospital className="mr-2" />
+                        <span>{diagnosis.hospitalId?.name || 'N/A'}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
-      )}
+      </div>
     </div>
   );
 };
