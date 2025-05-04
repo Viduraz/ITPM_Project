@@ -5,18 +5,22 @@ import Patient from '../models/Patient.js';
 import Diagnosis from '../models/Diagnosis.js';
 import Prescription from '../models/Prescription.js';
 import LabReport from '../models/LabReport.js';
+import PDFDocument from 'pdfkit';
+import fs from 'fs';
 
 // Get patient profile
 export const getPatientProfile = async (req, res) => {
+  console.log(req.params.id)
   try {
-    const patientId = req.params.id || req.user._id;
+    const patientId = req.params.id || req.body.user._id;
     
-    const patient = await Patient.findOne({ userId: patientId })
-      .populate('userId', 'firstName lastName email contactNumber profileImage');
+    const patient = await User.findOne({ _id: patientId, role: 'patient' })
+      // .populate('userId', 'firstName lastName email contactNumber profileImage');
     
     if (!patient) {
       return res.status(404).json({ message: 'Patient profile not found' });
     }
+    console.log(patient)
 
     res.status(200).json({ patient });
   } catch (error) {
@@ -69,6 +73,7 @@ export const searchDoctors = async (req, res) => {
 // Get patient's medical history
 export const getMedicalHistory = async (req, res) => {
   try {
+    console.log(req.user._id)
     const patientId = req.params.id || req.user._id;
     
     // Find the patient

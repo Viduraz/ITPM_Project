@@ -7,7 +7,11 @@ import {
   registerPharmacy, 
   registerLaboratory,
   registerDataEntry,
-  getMe // Add this import
+  getMe, // Add this import
+  getAllUsersByRole,
+  updateUser,
+  deleteUser,
+  getUserById
 } from '../controllers/authController.js';
 import { authenticateToken, authorizeRoles } from '../middleware/auth.js';
 
@@ -21,5 +25,8 @@ router.post('/register/patient', authenticateToken, registerPatient);
 router.post('/register/pharmacy', authenticateToken, authorizeRoles('admin'), registerPharmacy);
 router.post('/register/laboratory', authenticateToken, authorizeRoles('admin'), registerLaboratory);
 router.post('/register/dataentry', authenticateToken, authorizeRoles('admin'), registerDataEntry);
-
+router.get('/users/:role', authenticateToken, authorizeRoles('admin'),getAllUsersByRole); // Add this route
+router.put('/users/:userId',  authenticateToken, authorizeRoles('admin'), updateUser);
+router.delete('/users/:userId', authenticateToken, authorizeRoles('admin'), deleteUser);
+router.get('/users/:userId', authenticateToken, authorizeRoles('admin'), getUserById);
 export default router;
