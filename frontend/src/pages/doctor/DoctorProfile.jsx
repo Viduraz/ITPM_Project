@@ -43,7 +43,7 @@ const DoctorProfile = () => {
         // Try to fetch from API
         try {
           const response = await fetch(
-            `http://localhost:3001/api/doctors/${doctorId}`
+            `http://localhost:3000/api/doctors/${doctorId}`
           );
 
           if (!response.ok) {
@@ -130,7 +130,7 @@ const DoctorProfile = () => {
       // Call API to update doctor info
       try {
         const response = await fetch(
-          `http://localhost:3001/api/doctors/${doctorId}`,
+          `http://localhost:3000/api/doctors/${doctorId}`,
           {
             method: "PUT",
             headers: {

@@ -24,7 +24,7 @@ const DoctorLogin = () => {
     setError('');
 
     try {
-      const response = await fetch('http://localhost:3001/api/doctors/login', {
+      const response = await fetch('http://localhost:3000/api/doctors/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -128,7 +128,7 @@ const DoctorLogin = () => {
           <div className="mt-6 text-center">
             <p className="text-sm text-gray-600">
               Don't have an account?{' '}
-              <Link to="/register" className="font-medium text-indigo-600 hover:text-indigo-500">
+              <Link to="/doctor/register" className="font-medium text-indigo-600 hover:text-indigo-500">
                 Register now
               </Link>
             </p>

@@ -257,3 +257,51 @@ export const getDoctorAvailability = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+
+// Add this new controller method
+export const updateGlobalAvailability = async (req, res) => {
+  try {
+    const { isAvailable, date, timeFrom, timeTo } = req.body;
+
+    const doctor = await Doctor.findOne({ userId: req.user._id });
+    
+    if (!doctor) {
+      return res.status(404).json({ message: 'Doctor profile not found' });
+    }
+
+    // Create availability record
+    const availabilityData = {
+      date,
+      isAvailable,
+      hours: {
+        from: timeFrom,
+        to: timeTo
+      }
+    };
+
+    // Find if there's an existing record for this date
+    const existingAvailabilityIndex = doctor.availabilitySchedule 
+      ? doctor.availabilitySchedule.findIndex(a => a.date === date)
+      : -1;
+
+    if (existingAvailabilityIndex >= 0) {
+      // Update existing record
+      doctor.availabilitySchedule[existingAvailabilityIndex] = availabilityData;
+    } else if (!doctor.availabilitySchedule) {
+      // Initialize availability schedule array if it doesn't exist
+      doctor.availabilitySchedule = [availabilityData];
+    } else {
+      // Add new record
+      doctor.availabilitySchedule.push(availabilityData);
+    }
+
+    await doctor.save();
+
+    res.status(200).json({ 
+      message: `Global availability updated successfully to ${isAvailable ? 'available' : 'not available'}`,
+      doctor
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
