@@ -1,7 +1,13 @@
 import React, { useState } from 'react';
 import jsPDF from 'jspdf';
 import { autoTable } from 'jspdf-autotable';
-import { FaFileDownload, FaFileCsv, FaFilePdf, FaSearch, FaHospital, FaUserMd, FaUser } from 'react-icons/fa';
+import {
+  FaFileDownload,
+  FaFileCsv,
+  FaFilePdf,
+  FaSearch,
+  FaHospital
+} from 'react-icons/fa';
 
 const DiagnosisReport = ({ diagnoses, onClose }) => {
   const [loading, setLoading] = useState(false);
@@ -10,7 +16,6 @@ const DiagnosisReport = ({ diagnoses, onClose }) => {
   const [showExportOptions, setShowExportOptions] = useState(false);
   const [filteredDiagnoses, setFilteredDiagnoses] = useState(diagnoses);
 
-  // Filter by condition
   const handleConditionFilter = (text) => {
     setConditionFilter(text);
     if (text) {
@@ -24,7 +29,6 @@ const DiagnosisReport = ({ diagnoses, onClose }) => {
     }
   };
 
-  // Export to CSV
   const exportToCSV = () => {
     try {
       if (diagnoses.length === 0) {
@@ -32,7 +36,6 @@ const DiagnosisReport = ({ diagnoses, onClose }) => {
         return;
       }
 
-      // Prepare CSV data
       const headers = ['Patient Name', 'Condition', 'Symptoms', 'Follow-up Date', 'Doctor', 'Hospital'];
       const rows = filteredDiagnoses.map(diagnosis => [
         `${diagnosis.patientId?.userId?.firstName || ''} ${diagnosis.patientId?.userId?.lastName || ''}`.trim() || 'N/A',
@@ -43,17 +46,15 @@ const DiagnosisReport = ({ diagnoses, onClose }) => {
         diagnosis.hospitalId?.name || 'N/A'
       ]);
 
-      // Convert to CSV string
       const csvContent = [
         headers.join(','),
         ...rows.map(row => row.map(cell => `"${cell}"`).join(','))
       ].join('\n');
 
-      // Create and trigger download
       const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
       const link = document.createElement('a');
       const url = URL.createObjectURL(blob);
-      
+
       link.setAttribute('href', url);
       link.setAttribute('download', `diagnosis_report_${new Date().toISOString().split('T')[0]}.csv`);
       document.body.appendChild(link);
@@ -66,7 +67,6 @@ const DiagnosisReport = ({ diagnoses, onClose }) => {
     }
   };
 
-  // Export to PDF
   const exportToPDF = () => {
     try {
       if (diagnoses.length === 0) {
@@ -75,21 +75,18 @@ const DiagnosisReport = ({ diagnoses, onClose }) => {
       }
 
       const doc = new jsPDF();
-      
-      // Add header
+
       doc.setFontSize(20);
       doc.setTextColor(40, 40, 40);
       doc.text('Hospital Management System', 105, 15, { align: 'center' });
-      
+
       doc.setFontSize(16);
       doc.text('Diagnosis Report', 105, 25, { align: 'center' });
-      
-      // Add generation info
+
       doc.setFontSize(10);
       doc.setTextColor(100, 100, 100);
       doc.text(`Generated on: ${new Date().toLocaleString()}`, 105, 35, { align: 'center' });
 
-      // Table configuration
       const tableColumn = ['Patient Name', 'Condition', 'Symptoms', 'Follow-up Date', 'Doctor', 'Hospital'];
       const tableRows = filteredDiagnoses.map(diagnosis => [
         `${diagnosis.patientId?.userId?.firstName || ''} ${diagnosis.patientId?.userId?.lastName || ''}`.trim() || 'N/A',
@@ -100,40 +97,16 @@ const DiagnosisReport = ({ diagnoses, onClose }) => {
         diagnosis.hospitalId?.name || 'N/A'
       ]);
 
-      // Generate table
-      // doc.autoTable({
-      //   startY: 45,
-      //   head: [tableColumn],
-      //   body: tableRows,
-      //   theme: 'grid',
-      //   styles: {
-      //     fontSize: 8,
-      //     cellPadding: 5,
-      //     overflow: 'linebreak',
-      //     cellWidth: 'wrap'
-      //   },
-      //   headStyles: {
-      //     fillColor: [41, 128, 185],
-      //     textColor: 255,
-      //     fontSize: 9,
-      //     fontStyle: 'bold',
-      //     halign: 'center'
-      //   },
-      //   alternateRowStyles: {
-      //     fillColor: [245, 245, 245]
-      //   },
-      //   margin: { top: 40 }
-      // });
       autoTable(doc, {
         startY: 45,
         head: [tableColumn],
         body: tableRows,
         theme: 'grid',
+        tableWidth: 'wrap', // Ensure it fits A4 width
         styles: {
           fontSize: 8,
-          cellPadding: 5,
+          cellPadding: 3,
           overflow: 'linebreak',
-          cellWidth: 'wrap'
         },
         headStyles: {
           fillColor: [41, 128, 185],
@@ -145,10 +118,9 @@ const DiagnosisReport = ({ diagnoses, onClose }) => {
         alternateRowStyles: {
           fillColor: [245, 245, 245]
         },
-        margin: { top: 40 }
-      })
+        margin: { top: 45 }
+      });
 
-      // Save the PDF
       doc.save(`diagnosis_report_${new Date().toISOString().split('T')[0]}.pdf`);
     } catch (error) {
       console.error('Error generating PDF:', error);
@@ -158,12 +130,10 @@ const DiagnosisReport = ({ diagnoses, onClose }) => {
 
   return (
     <div className="min-h-screen bg-gray-50 py-8">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="bg-white rounded-2xl shadow-xl p-6 mb-8">
           <div className="flex flex-col md:flex-row md:items-center justify-between mb-8">
-            <h1 className="text-3xl font-bold text-gray-900 mb-4 md:mb-0">
-              Diagnosis Reports
-            </h1>
+            <h1 className="text-3xl font-bold text-gray-900 mb-4 md:mb-0">Diagnosis Reports</h1>
             <div className="flex flex-col sm:flex-row gap-4">
               <div className="relative">
                 <input
@@ -223,32 +193,24 @@ const DiagnosisReport = ({ diagnoses, onClose }) => {
               </div>
             </div>
           ) : (
-            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+            <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
               {filteredDiagnoses.map((diagnosis) => (
                 <div
                   key={diagnosis._id}
-                  className="bg-white rounded-xl shadow-sm border border-gray-200 hover:shadow-md transition-shadow duration-200"
+                  className="bg-white rounded-lg shadow-sm border border-gray-200 hover:shadow-md transition-shadow duration-200 max-w-sm"
                 >
-                  <div className="p-6">
-                    <div className="flex items-center justify-between mb-4">
-                      <h3 className="text-lg font-semibold text-blue-600">{diagnosis.condition}</h3>
-                      <span className="px-3 py-1 text-xs font-medium bg-blue-100 text-blue-800 rounded-full">
+                  <div className="p-3">
+                    <div className="flex items-center justify-between mb-2">
+                      <h3 className="text-sm font-semibold text-blue-600 truncate max-w-[150px]">{diagnosis.condition}</h3>
+                      <span className="px-2 py-0.5 text-xs font-medium bg-blue-100 text-blue-800 rounded-full whitespace-nowrap">
                         {new Date(diagnosis.followUpDate).toLocaleDateString()}
                       </span>
                     </div>
-                    <div className="space-y-3 text-sm">
+                    <div className="space-y-2 text-xs">
                       <p className="text-gray-600 line-clamp-2">{diagnosis.diagnosisDetails}</p>
                       <div className="flex items-center text-gray-500">
-                        <FaUser className="mr-2" />
-                        <span>{`${diagnosis.patientId?.userId?.firstName || 'Unknown'} ${diagnosis.patientId?.userId?.lastName || ''}`}</span>
-                      </div>
-                      <div className="flex items-center text-gray-500">
-                        <FaUserMd className="mr-2" />
-                        <span>{`${diagnosis.doctorId?.userId?.firstName || 'Unknown'} ${diagnosis.doctorId?.userId?.lastName || ''}`}</span>
-                      </div>
-                      <div className="flex items-center text-gray-500">
-                        <FaHospital className="mr-2" />
-                        <span>{diagnosis.hospitalId?.name || 'N/A'}</span>
+                        <FaHospital className="mr-1 text-xs flex-shrink-0" />
+                        <span className="truncate">{diagnosis.hospitalId?.name || 'N/A'}</span>
                       </div>
                     </div>
                   </div>
@@ -263,4 +225,3 @@ const DiagnosisReport = ({ diagnoses, onClose }) => {
 };
 
 export default DiagnosisReport;
-
