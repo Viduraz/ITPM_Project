@@ -1,44 +1,14 @@
-import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import React, { useState } from 'react';
 import jsPDF from 'jspdf';
-import 'jspdf-autotable';
-import { FaFileDownload, FaFileCsv, FaFilePdf, FaSearch, FaSyncAlt, FaHospital, FaUserMd, FaUser } from 'react-icons/fa';
+import { autoTable } from 'jspdf-autotable';
+import { FaFileDownload, FaFileCsv, FaFilePdf, FaSearch, FaHospital, FaUserMd, FaUser } from 'react-icons/fa';
 
-const DiagnosisReport = () => {
-  const [diagnoses, setDiagnoses] = useState([]);
-  const [filteredDiagnoses, setFilteredDiagnoses] = useState([]);
-  const [loading, setLoading] = useState(true);
+const DiagnosisReport = ({ diagnoses, onClose }) => {
+  const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const [conditionFilter, setConditionFilter] = useState('');
   const [showExportOptions, setShowExportOptions] = useState(false);
-
-  // Fetch diagnoses with error handling and retry mechanism
-  useEffect(() => {
-    const fetchDiagnoses = async (retryCount = 0) => {
-      try {
-        const token = localStorage.getItem('token');
-        if (!token) throw new Error('Authentication token not found');
-
-        const response = await axios.get('http://localhost:3000/api/dataentry/diagnoses', {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-
-        setDiagnoses(response.data);
-        setFilteredDiagnoses(response.data);
-      } catch (error) {
-        console.error('Error fetching diagnoses:', error);
-        if (retryCount < 3) {
-          setTimeout(() => fetchDiagnoses(retryCount + 1), 1000 * (retryCount + 1));
-        } else {
-          setErrorMessage('Failed to fetch diagnoses. Please try again later.');
-        }
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchDiagnoses();
-  }, []);
+  const [filteredDiagnoses, setFilteredDiagnoses] = useState(diagnoses);
 
   // Filter by condition
   const handleConditionFilter = (text) => {
@@ -56,63 +26,134 @@ const DiagnosisReport = () => {
 
   // Export to CSV
   const exportToCSV = () => {
-    const csvData = filteredDiagnoses.map((diagnosis) => ({
-      'Patient Name': `${diagnosis.patientId?.userId?.firstName || ''} ${diagnosis.patientId?.userId?.lastName || ''}`,
-      'Condition': diagnosis.condition,
-      'Symptoms': diagnosis.symptoms?.join(', ') || 'N/A',
-      'Follow-up Date': diagnosis.followUpDate
-        ? new Date(diagnosis.followUpDate).toLocaleDateString()
-        : 'Not scheduled',
-      'Doctor': `${diagnosis.doctorId?.userId?.firstName || ''} ${diagnosis.doctorId?.userId?.lastName || ''}`,
-      'Hospital': diagnosis.hospitalId?.name || 'N/A',
-    }));
+    try {
+      if (diagnoses.length === 0) {
+        alert('No data to export');
+        return;
+      }
 
-    const headers = Object.keys(csvData[0]);
-    const rows = csvData.map(row => headers.map(header => row[header]));
+      // Prepare CSV data
+      const headers = ['Patient Name', 'Condition', 'Symptoms', 'Follow-up Date', 'Doctor', 'Hospital'];
+      const rows = filteredDiagnoses.map(diagnosis => [
+        `${diagnosis.patientId?.userId?.firstName || ''} ${diagnosis.patientId?.userId?.lastName || ''}`.trim() || 'N/A',
+        diagnosis.condition || 'N/A',
+        diagnosis.symptoms?.join('; ') || 'N/A',
+        diagnosis.followUpDate ? new Date(diagnosis.followUpDate).toLocaleDateString() : 'Not scheduled',
+        `${diagnosis.doctorId?.userId?.firstName || ''} ${diagnosis.doctorId?.userId?.lastName || ''}`.trim() || 'N/A',
+        diagnosis.hospitalId?.name || 'N/A'
+      ]);
 
-    const csvContent = [headers, ...rows].map(e => e.join(',')).join('\n');
-    const blob = new Blob([csvContent], { type: 'text/csv' });
-    const link = document.createElement('a');
-    link.href = URL.createObjectURL(blob);
-    link.download = 'diagnosis_report.csv';
-    link.click();
+      // Convert to CSV string
+      const csvContent = [
+        headers.join(','),
+        ...rows.map(row => row.map(cell => `"${cell}"`).join(','))
+      ].join('\n');
+
+      // Create and trigger download
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement('a');
+      const url = URL.createObjectURL(blob);
+      
+      link.setAttribute('href', url);
+      link.setAttribute('download', `diagnosis_report_${new Date().toISOString().split('T')[0]}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Error generating CSV:', error);
+      alert('Failed to generate CSV. Please try again.');
+    }
   };
 
   // Export to PDF
   const exportToPDF = () => {
-    const doc = new jsPDF();
-    doc.setFontSize(14);
-    doc.text('Diagnosis Report', 14, 20);
+    try {
+      if (diagnoses.length === 0) {
+        alert('No data to export');
+        return;
+      }
 
-    const tableColumn = [
-      'Patient Name',
-      'Condition',
-      'Symptoms',
-      'Follow-up',
-      'Doctor',
-      'Hospital',
-    ];
+      const doc = new jsPDF();
+      
+      // Add header
+      doc.setFontSize(20);
+      doc.setTextColor(40, 40, 40);
+      doc.text('Hospital Management System', 105, 15, { align: 'center' });
+      
+      doc.setFontSize(16);
+      doc.text('Diagnosis Report', 105, 25, { align: 'center' });
+      
+      // Add generation info
+      doc.setFontSize(10);
+      doc.setTextColor(100, 100, 100);
+      doc.text(`Generated on: ${new Date().toLocaleString()}`, 105, 35, { align: 'center' });
 
-    const tableRows = filteredDiagnoses.map(diagnosis => [
-      `${diagnosis.patientId?.userId?.firstName || ''} ${diagnosis.patientId?.userId?.lastName || ''}`,
-      diagnosis.condition || '',
-      diagnosis.symptoms?.join(', ') || 'N/A',
-      diagnosis.followUpDate
-        ? new Date(diagnosis.followUpDate).toLocaleDateString()
-        : 'Not scheduled',
-      `${diagnosis.doctorId?.userId?.firstName || ''} ${diagnosis.doctorId?.userId?.lastName || ''}`,
-      diagnosis.hospitalId?.name || 'N/A',
-    ]);
+      // Table configuration
+      const tableColumn = ['Patient Name', 'Condition', 'Symptoms', 'Follow-up Date', 'Doctor', 'Hospital'];
+      const tableRows = filteredDiagnoses.map(diagnosis => [
+        `${diagnosis.patientId?.userId?.firstName || ''} ${diagnosis.patientId?.userId?.lastName || ''}`.trim() || 'N/A',
+        diagnosis.condition || 'N/A',
+        diagnosis.symptoms?.join(', ') || 'N/A',
+        diagnosis.followUpDate ? new Date(diagnosis.followUpDate).toLocaleDateString() : 'Not scheduled',
+        `${diagnosis.doctorId?.userId?.firstName || ''} ${diagnosis.doctorId?.userId?.lastName || ''}`.trim() || 'N/A',
+        diagnosis.hospitalId?.name || 'N/A'
+      ]);
 
-    doc.autoTable({
-      startY: 30,
-      head: [tableColumn],
-      body: tableRows,
-      styles: { fontSize: 10 },
-      headStyles: { fillColor: [22, 160, 133] },
-    });
+      // Generate table
+      // doc.autoTable({
+      //   startY: 45,
+      //   head: [tableColumn],
+      //   body: tableRows,
+      //   theme: 'grid',
+      //   styles: {
+      //     fontSize: 8,
+      //     cellPadding: 5,
+      //     overflow: 'linebreak',
+      //     cellWidth: 'wrap'
+      //   },
+      //   headStyles: {
+      //     fillColor: [41, 128, 185],
+      //     textColor: 255,
+      //     fontSize: 9,
+      //     fontStyle: 'bold',
+      //     halign: 'center'
+      //   },
+      //   alternateRowStyles: {
+      //     fillColor: [245, 245, 245]
+      //   },
+      //   margin: { top: 40 }
+      // });
+      autoTable(doc, {
+        startY: 45,
+        head: [tableColumn],
+        body: tableRows,
+        theme: 'grid',
+        styles: {
+          fontSize: 8,
+          cellPadding: 5,
+          overflow: 'linebreak',
+          cellWidth: 'wrap'
+        },
+        headStyles: {
+          fillColor: [41, 128, 185],
+          textColor: 255,
+          fontSize: 9,
+          fontStyle: 'bold',
+          halign: 'center'
+        },
+        alternateRowStyles: {
+          fillColor: [245, 245, 245]
+        },
+        margin: { top: 40 }
+      })
 
-    doc.save('diagnosis_report.pdf');
+      // Save the PDF
+      doc.save(`diagnosis_report_${new Date().toISOString().split('T')[0]}.pdf`);
+    } catch (error) {
+      console.error('Error generating PDF:', error);
+      alert('Failed to generate PDF. Please try again.');
+    }
   };
 
   return (
@@ -222,3 +263,4 @@ const DiagnosisReport = () => {
 };
 
 export default DiagnosisReport;
+
