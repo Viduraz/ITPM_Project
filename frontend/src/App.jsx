@@ -48,6 +48,7 @@ import DoctorRegister from "./pages/doctor/DoctorRegister.jsx";
 import PatientEditForm from "./admin/PatientEditForm"; 
 import PatientAddForm from "./admin/PatientAddForm"; // Add this import
 
+import DiagnosisUpdate from "./pages/dataentry/DiagnosisUpdate.jsx";
 // Protected Route Component
 const ProtectedRoute = ({ children, allowedRoles }) => {
   const { user, doctor, loading } = useAuth();
