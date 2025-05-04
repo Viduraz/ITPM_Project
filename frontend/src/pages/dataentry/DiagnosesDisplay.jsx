@@ -240,20 +240,6 @@ const DiagnosesDisplay = () => {
                   <div className="space-y-3 mb-5">
                     <div className="flex items-center text-gray-600 text-sm">
                       <div className="w-8">
-                        <FaUser className="text-indigo-400" />
-                      </div>
-                      <span className="font-medium">{`${diagnosis.patientId?.userId?.firstName || 'Unknown'} ${diagnosis.patientId?.userId?.lastName || ''}`}</span>
-                    </div>
-                    
-                    <div className="flex items-center text-gray-600 text-sm">
-                      <div className="w-8">
-                        <FaUserMd className="text-green-500" />
-                      </div>
-                      <span>Dr. {`${diagnosis.doctorId?.userId?.firstName || 'Unknown'} ${diagnosis.doctorId?.userId?.lastName || ''}`}</span>
-                    </div>
-                    
-                    <div className="flex items-center text-gray-600 text-sm">
-                      <div className="w-8">
                         <FaHospital className="text-blue-500" />
                       </div>
                       <span>{diagnosis.hospitalId?.name || 'N/A'}</span>

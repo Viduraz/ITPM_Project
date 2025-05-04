@@ -5,8 +5,6 @@ import { useParams, useNavigate } from 'react-router-dom';
 const DiagnosisUpdate = () => {
   const { id } = useParams();
   const [diagnosis, setDiagnosis] = useState({
-    patientId: '',
-    doctorId: '',
     hospitalId: '',
     condition: '',
     diagnosisDetails: '',
@@ -35,8 +33,6 @@ const DiagnosisUpdate = () => {
 
         const data = response.data;
         setDiagnosis({
-          patientId: data.patientId || '',
-          doctorId: data.doctorId || '',
           hospitalId: data.hospitalId || '',
           condition: data.condition || '',
           diagnosisDetails: data.diagnosisDetails || '',
@@ -115,30 +111,6 @@ const DiagnosisUpdate = () => {
     <div className="p-6">
       <h2 className="text-2xl font-bold mb-4">Update Diagnosis</h2>
       <form onSubmit={handleSubmit} className="space-y-4">
-        <div>
-          <label className="block text-sm font-medium text-gray-600">Patient ID</label>
-          <input
-            type="text"
-            name="patientId"
-            value={diagnosis.patientId}
-            onChange={handleChange}
-            className="mt-1 block w-full p-2 border border-gray-300 rounded-md"
-            required
-          />
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-gray-600">Doctor ID</label>
-          <input
-            type="text"
-            name="doctorId"
-            value={diagnosis.doctorId}
-            onChange={handleChange}
-            className="mt-1 block w-full p-2 border border-gray-300 rounded-md"
-            required
-          />
-        </div>
-
         <div>
           <label className="block text-sm font-medium text-gray-600">Hospital ID</label>
           <input
