@@ -4,17 +4,21 @@ import {
   searchDoctors, 
   getMedicalHistory,
   getHospitals,
-  downloadReport
+  downloadReport,
+  fetchPatients // Corrected the import statement
 } from '../controllers/patientController.js';
 import { authenticateToken, authorizeRoles } from '../middleware/auth.js';
 
 const router = express.Router();
 
 // Apply authentication middleware to all routes
-router.use(authenticateToken);
+//router.use(authenticateToken);
+
+// Routes for fetching patients
+router.get('/patients', fetchPatients); // Fetch patients route
 
 // Routes accessible to patients only
-router.get('/profile', authorizeRoles('patient'), getPatientProfile);
+router.get('/profile/:id', getPatientProfile);
 router.get('/medical-history', authorizeRoles('patient'), getMedicalHistory);
 
 // Routes accessible to both patients and doctors

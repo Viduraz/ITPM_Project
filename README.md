@@ -138,6 +138,140 @@ Body:{
   "operatingHours": "9AM-9PM"
 }
 
+
+Data Entry API Endpoints - Patient History Management System
+
+Base URL: `http://localhost:3000/api/dataentry`
+
+> All protected routes require a Bearer token unless otherwise noted.
+
+---
+
+Create Data Entry Profile
+POST `/create-profile`
+
+_Public — No token required_
+Request Body
+```json
+{
+  "userId": "USER_ID_HERE",
+  "workShift": "Morning",
+  "supervisor": "SUPERVISOR_ID_HERE",
+  "department": "General"
+}
+```
+
+---
+
+Get Data Entry Profile
+GET `/profile`
+
+_Requires token_
+
+---
+
+ Get Assigned Tasks
+GET `/tasks`
+
+_Requires token_
+
+---
+
+Get All Patients
+GET `/patients`
+
+_Requires token_
+
+---
+
+Diagnosis Endpoints
+
+Create Diagnosis
+POST `/diagnoses`
+
+Request Body
+```json
+{
+  "patientId": "PATIENT_ID_HERE",
+  "doctorId": "DOCTOR_ID_HERE",
+  "hospitalId": "HOSPITAL_ID_HERE",
+  "condition": "Condition Name",
+  "diagnosisDetails": "Details here",
+  "symptoms": "Fever, Cough",
+  "notes": "Optional notes",
+  "followUpDate": "2025-05-10"
+}
+```
+
+---
+
+Get All Diagnoses
+GET `/diagnoses`
+
+---
+
+Get Diagnosis by ID
+GET `/diagnoses/:id`
+
+---
+
+Update Diagnosis
+PUT `/diagnoses/:id`
+
+---
+
+Delete Diagnosis
+DELETE `/diagnoses/:id`
+
+---
+
+Prescription Endpoints
+
+Create Prescription
+POST `/prescriptions`
+
+Request Body
+```json
+{
+  "patientId": "PATIENT_ID_HERE",
+  "medications": [
+    {
+      "name": "Amoxicillin",
+      "dosage": "500mg",
+      "frequency": "3 times a day",
+      "duration": "7 days"
+    }
+  ],
+  "instructions": "Take after meals"
+}
+```
+
+---
+
+Get All Prescriptions
+GET `/prescriptions`
+
+---
+
+## 🔍 Get Prescription by ID
+**GET** `/prescriptions/:id`
+
+---
+
+Update Prescription
+PUT `/prescriptions/:id`
+
+---
+
+Delete Prescription
+DELETE `/prescriptions/:id`
+
+---
+
+For testing, use Postman or similar tools with proper Bearer token in headers for protected routes.
+
+
+
 for the frontend u need to install using npm i react axios,react router dom, tailwind css, if want to code use https://tailwindcss.com/docs/installation/using-vite
 
 

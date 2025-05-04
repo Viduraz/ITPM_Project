@@ -1,37 +1,38 @@
 import mongoose from 'mongoose';
 
 const diagnosisSchema = new mongoose.Schema({
-  patient: {
+  patientId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Patient',
-    required: true
+    required: true,
   },
-  doctor: {
+  doctorId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Doctor',
-    required: true
+    required: true,
   },
-  hospital: {
+  hospitalId: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'Hospital'
+    ref: 'Hospital',
+    required: false,
   },
-  diagnosisDate: {
-    type: Date,
-    default: Date.now
-  },
-  symptoms: [{
-    type: String
-  }],
   diagnosisDetails: {
     type: String,
-    required: true
+    required: true,
   },
   condition: {
     type: String,
-    required: true
+    required: true,
   },
-  notes: String,
-  followUpDate: Date
+  symptoms: [{
+    type: String,
+  }],
+  notes: {
+    type: String,
+  },
+  followUpDate: {
+    type: Date,
+  },
 }, { timestamps: true });
 
 const Diagnosis = mongoose.model('Diagnosis', diagnosisSchema);
